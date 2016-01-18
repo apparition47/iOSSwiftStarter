@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="iOSSwiftStarter : A sample iOS app written in Swift using the VIPER architecture.">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>iOSSwiftStarter</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/RoRoche/iOSSwiftStarter">View on GitHub</a>
+
+          <h1 id="project_title">iOSSwiftStarter</h1>
+          <h2 id="project_tagline">A sample iOS app written in Swift using the VIPER architecture.</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/RoRoche/iOSSwiftStarter/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/RoRoche/iOSSwiftStarter/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a id="little-stories-about-an-ios-application-architecture-in-swift" class="anchor" href="#little-stories-about-an-ios-application-architecture-in-swift" aria-hidden="true"><span class="octicon octicon-link"></span></a>Little stories about an iOS application architecture in Swift</h1>
+
+<p><img src="https://swift.org/assets/images/swift.svg" alt="Swift logo"></p>
+
+<p>By writing this paper, my goal is to describe how I came up with the iOS app architecture I suggest.
+It's a step by step writing to follow the reasons bringing me to set up the different components I chose.</p>
+
+<p>The aim of the template application is very simple: it's a master/detail application to present a list of GitHub repositories of a given user.
+Although it's simple, it gathers some classical jobs when writing an application:</p>
+
+<ul>
+<li>consume a REST API</li>
+<li>save data to a local storage</li>
+<li>load data from this local storage</li>
+<li>architecture the logical layer and navigation between screens</li>
+</ul>
+
+<p>Let's discover what's hiding under the hood!</p>
+
+<hr>
+
+<h2>
+<a id="dependency-management" class="anchor" href="#dependency-management" aria-hidden="true"><span class="octicon octicon-link"></span></a>Dependency management</h2>
+
+<p>To manage the dependencies to various tools and libraries our project will rely on, I chose to use <a href="https://cocoapods.org/">CocoaPods</a> .</p>
+
+<p><img src="http://cdn1.raywenderlich.com/wp-content/uploads/2015/02/cocoapods_logo.png" alt="CocoaPods logo"></p>
+
+<p>First of all, I had to install it via:</p>
+
+<pre><code>$ sudo gem install cocoapods
+</code></pre>
+
+<p>Then I ran the following command in the root directory of the project:</p>
+
+<pre><code>$ pod init
+</code></pre>
+
+<p>It creates the corresponding file named <code>Podfile</code>, where to put the dependencies.</p>
+
+<p>Just describe each one in the following way:</p>
+
+<pre><code>platform :ios, '8.0'
+use_frameworks!
+
+target 'MyApp' do
+  pod '{{LibraryName}}', '~&gt; {{LibraryVersion}}'
+end
+</code></pre>
+
+<p>Then running</p>
+
+<pre><code>$ pod install
+</code></pre>
+
+<p>will download each one in the <code>Pods</code> directory.</p>
+
+<p>Then, the project must be opened thanks to the following command line:</p>
+
+<pre><code>open {{Project_Name}}.xcworkspace
+</code></pre>
+
+<h2>
+<a id="consuming-rest-api" class="anchor" href="#consuming-rest-api" aria-hidden="true"><span class="octicon octicon-link"></span></a>Consuming REST API</h2>
+
+<h3>
+<a id="rest-client" class="anchor" href="#rest-client" aria-hidden="true"><span class="octicon octicon-link"></span></a>REST Client</h3>
+
+<p>To achieve HTTP networking in Swift, I chose to use the famous libraries all around the ecosystem: <a href="https://github.com/Alamofire/Alamofire">Alamofire</a>.</p>
+
+<p><img src="https://raw.githubusercontent.com/Alamofire/Alamofire/assets/alamofire.png" alt="Alamofire logo"></p>
+
+<p>Alamofire</p>
+
+<ul>
+<li>is very complete</li>
+<li>has a fluent API</li>
+<li>is very well unit tested and documented</li>
+<li>has a cURL debug output (very nice tip)</li>
+</ul>
+
+<p>Coming from a world of Android and Retrofit, I love a clean API service definition in a dedicated file.
+Following the Alamofire documentation, we can see, in the <a href="https://github.com/Alamofire/Alamofire#crud--authorization">CRUD &amp; Authorization section</a>, that it's possible to define a Swift <code>enum</code> with methods matching the API service.
+This enum must extend the <code>URLRequestConvertible</code> protocol.</p>
+
+<p>What we've got is a clean, readable, maintainable file bringing together all the needed API call methods, such as:</p>
+
+<div class="highlight highlight-source-swift"><pre><span class="pl-k">import</span> <span class="pl-c1">Alamofire</span>
+
+<span class="pl-k">enum</span> ApiService: URLRequestConvertible {
+    <span class="pl-k">static</span> <span class="pl-k">let</span> baseURLString <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>https://api.github.com<span class="pl-pds">"</span></span>
+
+    <span class="pl-c">// MARK: API methods definitions</span>
+
+    <span class="pl-k">case</span> ListRepos(user: <span class="pl-c1">String</span>, <span class="pl-c1">sort</span>: ListReposSort?);
+
+    <span class="pl-c">// MARK: Parameters values for API methods</span>
+
+    <span class="pl-k">enum</span> ListReposSort {
+        <span class="pl-k">case</span> DESC;
+        <span class="pl-k">case</span> ASC;
+        <span class="pl-k">var</span> value: <span class="pl-c1">String</span> {
+            <span class="pl-k">switch</span> <span class="pl-k">self</span> {
+            <span class="pl-k">case</span> <span class="pl-k">.</span>ASC:
+                <span class="pl-k">return</span> <span class="pl-s"><span class="pl-pds">"</span>asc<span class="pl-pds">"</span></span>;
+            <span class="pl-k">case</span> <span class="pl-k">.</span>DESC:
+                <span class="pl-k">return</span> <span class="pl-s"><span class="pl-pds">"</span>desc<span class="pl-pds">"</span></span>;
+            }
+        }
+    }
+
+    <span class="pl-c">// MARK: Verb definition according to API method</span>
+
+    <span class="pl-k">var</span> method: Alamofire<span class="pl-k">.</span>Method {
+        <span class="pl-k">switch</span> <span class="pl-k">self</span> {
+        <span class="pl-k">case</span> <span class="pl-k">.</span>ListRepos:
+            <span class="pl-k">return</span> <span class="pl-k">.</span>GET;
+        }
+    }
+
+    <span class="pl-c">// MARK: Path definition according to API method</span>
+
+    <span class="pl-k">var</span> path: (lastSegmentPath: <span class="pl-c1">String</span>, parameters: [<span class="pl-c1">String</span>: <span class="pl-c1">AnyObject</span>]?) {
+        <span class="pl-k">switch</span> <span class="pl-k">self</span> {
+        <span class="pl-k">case</span> <span class="pl-k">.</span>ListRepos(<span class="pl-k">let</span> user, <span class="pl-k">let</span> <span class="pl-c1">sort</span>) <span class="pl-k">where</span> <span class="pl-c1">sort</span> <span class="pl-k">!=</span> <span class="pl-c1">nil</span>:
+            <span class="pl-k">return</span> (<span class="pl-s"><span class="pl-pds">"</span>/users/<span class="pl-pse">\(</span><span class="pl-s1">user</span><span class="pl-pse">)</span>/repos<span class="pl-pds">"</span></span>, [<span class="pl-s"><span class="pl-pds">"</span>sort<span class="pl-pds">"</span></span>: <span class="pl-c1">sort</span><span class="pl-k">!.</span><span class="pl-c1">value</span>]);
+        <span class="pl-k">case</span> <span class="pl-k">.</span>ListRepos(<span class="pl-k">let</span> user, _):
+            <span class="pl-k">return</span> (<span class="pl-s"><span class="pl-pds">"</span>/users/<span class="pl-pse">\(</span><span class="pl-s1">user</span><span class="pl-pse">)</span>/repos<span class="pl-pds">"</span></span>, <span class="pl-c1">nil</span>);
+        }
+    }
+
+    <span class="pl-c">// MARK: URLRequestConvertible</span>
+
+    <span class="pl-k">var</span> URLRequest: NSMutableURLRequest {
+        <span class="pl-k">let</span> URL <span class="pl-k">=</span> NSURL(string: ApiService<span class="pl-k">.</span>baseURLString)<span class="pl-k">!</span>;
+        <span class="pl-k">let</span> mutableURLRequest <span class="pl-k">=</span> NSMutableURLRequest(URL: URL<span class="pl-k">.</span>URLByAppendingPathComponent(path<span class="pl-k">.</span>lastSegmentPath));
+        mutableURLRequest<span class="pl-k">.</span>HTTPMethod <span class="pl-k">=</span> method<span class="pl-k">.</span><span class="pl-c1">rawValue</span>;
+        <span class="pl-k">let</span> encoding <span class="pl-k">=</span> Alamofire<span class="pl-k">.</span>ParameterEncoding<span class="pl-k">.</span>URL;
+
+        <span class="pl-k">return</span> encoding<span class="pl-k">.</span>encode(mutableURLRequest, parameters: path<span class="pl-k">.</span>parameters)<span class="pl-k">.</span><span class="pl-c1">0</span>;
+    }
+}</pre></div>
+
+<p>Now just use it with Alamofire as follows:</p>
+
+<div class="highlight highlight-source-swift"><pre>Alamofire<span class="pl-k">.</span>request(ApiService<span class="pl-k">.</span>ListRepos(user: <span class="pl-s"><span class="pl-pds">"</span>RoRoche<span class="pl-pds">"</span></span>, <span class="pl-c1">sort</span>: ApiService<span class="pl-k">.</span>ListReposSort<span class="pl-k">.</span>DESC))</pre></div>
+
+<p>Here we have in a single file:</p>
+
+<ul>
+<li>the API base URL</li>
+<li>the available methods</li>
+<li>for each method, its parameters and the way to build its path</li>
+<li>for each method, the HTTP Verb to use</li>
+</ul>
+
+<p>The way to use it could vary according to the developer's philosophy or/and needs:</p>
+
+<ul>
+<li>it could be a "resource-oriented" file (such as in AngularJS <code>resources</code> concept ; such as in Alamofire CRUD section of documentation)</li>
+<li>it could distinguish authentificated calls</li>
+<li>an enum file could correspond to one API method</li>
+<li>etc.</li>
+</ul>
+
+<p>Conclusion: at this step, we have an elegant way to define REST API calls.</p>
+
+<p>But now, we have to consider dealing with the data obtained via the API.
+Here is the moment to talk about how to parse data (JSON content in this case).</p>
+
+<h3>
+<a id="parsing-data" class="anchor" href="#parsing-data" aria-hidden="true"><span class="octicon octicon-link"></span></a>Parsing data</h3>
+
+<p>To parse JSON data, I chose to use <a href="https://github.com/Hearst-DD/ObjectMapper">ObjectMapper</a>.
+It's a well-known library in the Swift ecosystem.</p>
+
+<p>The reason why I chose this one is for the following features:</p>
+
+<ul>
+<li>it has a two-binding between JSON and objects</li>
+<li>it can deal with nested objects</li>
+<li>it manages subclasses</li>
+<li>it manages generic objects</li>
+<li>it has ability to transform input data to specific outputs</li>
+</ul>
+
+<p>A <code>class</code>or <code>struct</code> simply has to respond to <code>Mappable</code> protocol by implementing:</p>
+
+<div class="highlight highlight-source-swift"><pre>    <span class="pl-k">init</span>?(_ map: Map)
+    <span class="pl-k">mutating</span> <span class="pl-k">func</span> <span class="pl-en">mapping</span>(map: Map)</pre></div>
+
+<p>So it's possible to define variables with a given name to map a JSON key with a different name (could be convenient for specific needs).</p>
+
+<p>First, I define the data model to parse: here, a <code>Repo</code> class such as:</p>
+
+<div class="highlight highlight-source-swift"><pre><span class="pl-k">class</span> Repo {
+    <span class="pl-k">var</span> id: <span class="pl-c1">Int</span>?;
+    <span class="pl-k">var</span> name: <span class="pl-c1">String</span>?;
+    <span class="pl-k">var</span> owner: <span class="pl-c1">String</span>?;
+    <span class="pl-k">var</span> avatarUrl: <span class="pl-c1">String</span>?;
+    <span class="pl-k">var</span> desc: <span class="pl-c1">String</span>?;
+    <span class="pl-k">var</span> createdAt: <span class="pl-c1">String</span>?;
+    <span class="pl-k">var</span> gitUrl: <span class="pl-c1">String</span>?;
+    <span class="pl-k">var</span> cloneUrl: <span class="pl-c1">String</span>?;
+}</pre></div>
+
+<p>Then, I make it respond to the <code>Mappable</code> protocol thanks to the following code:</p>
+
+<div class="highlight highlight-source-swift"><pre>    <span class="pl-k">required</span> <span class="pl-k">init</span>?(_ map: Map) {
+    }
+
+    <span class="pl-k">func</span> <span class="pl-en">mapping</span>(map: Map) {
+        id          <span class="pl-k">&lt;-</span> map[<span class="pl-s"><span class="pl-pds">"</span>id<span class="pl-pds">"</span></span>];
+        name        <span class="pl-k">&lt;-</span> map[<span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span>];
+        owner       <span class="pl-k">&lt;-</span> map[<span class="pl-s"><span class="pl-pds">"</span>owner.login<span class="pl-pds">"</span></span>];
+        avatarUrl   <span class="pl-k">&lt;-</span> map[<span class="pl-s"><span class="pl-pds">"</span>owner.avatar_url<span class="pl-pds">"</span></span>];
+        desc        <span class="pl-k">&lt;-</span> map[<span class="pl-s"><span class="pl-pds">"</span>description<span class="pl-pds">"</span></span>];
+        createdAt   <span class="pl-k">&lt;-</span> map[<span class="pl-s"><span class="pl-pds">"</span>created_at<span class="pl-pds">"</span></span>];
+        gitUrl      <span class="pl-k">&lt;-</span> map[<span class="pl-s"><span class="pl-pds">"</span>git_url<span class="pl-pds">"</span></span>];
+        cloneUrl    <span class="pl-k">&lt;-</span> map[<span class="pl-s"><span class="pl-pds">"</span>clone_url<span class="pl-pds">"</span></span>];
+    }</pre></div>
+
+<p>Here is the ObjectMapper specific code. After that, the code to call the REST API through Alamofire and parse the results is the following:</p>
+
+<div class="highlight highlight-source-swift"><pre>        Alamofire<span class="pl-k">.</span>request(ApiService<span class="pl-k">.</span>ListRepos(user: user, <span class="pl-c1">sort</span>: ApiService<span class="pl-k">.</span>ListReposSort<span class="pl-k">.</span>DESC))
+            <span class="pl-k">.</span>responseJSON { response <span class="pl-k">in</span>
+                <span class="pl-k">if</span> <span class="pl-k">let</span> JSON <span class="pl-k">=</span> response<span class="pl-k">.</span>result<span class="pl-k">.</span><span class="pl-c1">value</span> {
+                    <span class="pl-k">let</span> repos <span class="pl-k">=</span> Mapper<span class="pl-k">&lt;</span>Repo<span class="pl-k">&gt;</span>()<span class="pl-k">.</span>mapArray(JSON);
+                    <span class="pl-c">// deal with result</span>
+                }
+        }</pre></div>
+
+<p>Now, a very personal point of view: I love separating logical layers to specific files/classes. Here we have two concepts:</p>
+
+<ul>
+<li>on the one hand, a very simple object model, just defining variables</li>
+<li>on the other hand, a specific mapping job responding to a peculiar protocol, with a dedicated method</li>
+</ul>
+
+<p>That's where I'd like to introduce the Swift <em>extensions</em> (powerful and interesting) concept.
+It relies on the ability to add a behavior (i.e., functions) to a given class. Luckily, just what I described before!</p>
+
+<p>So, I decided to create a new Swift file named <code>RepoDTO.swift</code> (the "DTO" notation references the DTO pattern commonly used in Web projects). It declares the <code>extension Repo</code> and declares the response to the <code>Mappable</code> protocol.
+It just contains the implementation of the <code>mapping(map: Map)</code> function. I'd like to include the <code>Mappable.init</code> but such a required initializer must be located inside the original class.</p>
+
+<p>I know that it's typically a point of discussion:</p>
+
+<ul>
+<li>some developers prefer to view all the API of a class in a single file</li>
+<li>personally, I like to decouple logical segments in dedicated files to write lesser but more meaningful files</li>
+</ul>
+
+<p>I guess the introduction of CoreData concepts and code generation would show that it can be helpful to maintain such dedicated files, instead of fighting with diff tools to revert these "custom" code segments.</p>
+
+<p>Considering Xcode organization advantages: it allows us to create groups matching the following logic:</p>
+
+<pre><code>    {{ProjectName}}
+    |_  {{ProjectMainFolder}}
+        |_  Model
+            |_  Repo.swift
+        |_ REST
+            |_  ApiService.swift
+            |_ DTO
+                |_  RepoDTO.swift
+
+</code></pre>
+
+<p>N.B.: An extension is provided (<a href="https://github.com/tristanhimmelman/AlamofireObjectMapper">AlamofireObjectMapper</a>) to use ObjectMapper to convert Alamofire responses.</p>
+
+<h2>
+<a id="managing-jobs" class="anchor" href="#managing-jobs" aria-hidden="true"><span class="octicon octicon-link"></span></a>Managing jobs</h2>
+
+<p>Here we have the requests to a remote API and its parsing working. We could want to add an abstraction layer to isolate these two specific jobs in a single class.</p>
+
+<p>That's why I decided to use <a href="https://github.com/ReactKit/SwiftTask">SwiftTask</a>.</p>
+
+<p>To demonstrate how to use it, I first created a specific class to perform the REST call and the parsing.
+I called it <code>QueryListRepos</code> and made it extend <code>Task&lt;Void, Array&lt;Repo&gt;, NSError&gt;</code>.</p>
+
+<p>Now the deal is to configure it in its <code>init</code> using the <code>InitClosure</code> type. 
+The <code>init</code> method takes a <code>String</code> parameter corresponding to the <code>user</code> we are looking for.
+In the <code>InitClosure</code>, we define the expected behavior as follows:</p>
+
+<div class="highlight highlight-source-swift"><pre><span class="pl-k">let</span> initClosure: InitClosure <span class="pl-k">=</span> { progress, fulfill, reject, configure <span class="pl-k">in</span>
+
+    <span class="pl-k">let</span> request <span class="pl-k">=</span> Alamofire<span class="pl-k">.</span>request(ApiService<span class="pl-k">.</span>ListRepos(user: user, <span class="pl-c1">sort</span>: ApiService<span class="pl-k">.</span>ListReposSort<span class="pl-k">.</span>DESC))
+        <span class="pl-k">.</span>responseJSON { response <span class="pl-k">in</span>
+
+            <span class="pl-k">if</span>(response<span class="pl-k">.</span>result<span class="pl-k">.</span>error <span class="pl-k">!=</span> <span class="pl-c1">nil</span>) {
+                reject(response<span class="pl-k">.</span>result<span class="pl-k">.</span>error<span class="pl-k">!</span>);
+            } <span class="pl-k">else</span> {
+                <span class="pl-k">if</span> <span class="pl-k">let</span> JSON <span class="pl-k">=</span> response<span class="pl-k">.</span>result<span class="pl-k">.</span><span class="pl-c1">value</span> {
+                    <span class="pl-c">// JSON parsing</span>
+                    <span class="pl-k">let</span> repos: <span class="pl-c1">Array</span><span class="pl-k">&lt;</span>Repo<span class="pl-k">&gt;</span> <span class="pl-k">=</span> Mapper<span class="pl-k">&lt;</span>Repo<span class="pl-k">&gt;</span>()<span class="pl-k">.</span>mapArray(JSON)<span class="pl-k">!</span>;
+
+                    <span class="pl-c">// finish with success</span>
+                    fulfill(repos);
+                } <span class="pl-k">else</span> {
+                    <span class="pl-c">// finish with error</span>
+                    <span class="pl-k">let</span> error: NSError <span class="pl-k">=</span> NSError(domain: <span class="pl-s"><span class="pl-pds">"</span>JSON parsing<span class="pl-pds">"</span></span>, code: <span class="pl-c1">0</span>, userInfo: [<span class="pl-k">:</span>]);
+                    reject(error);
+                }
+            }                    
+    }
+
+    <span class="pl-c1">debugPrint</span>(request);
+
+    <span class="pl-c">// we plug the cancel method of the Task to the cancel method of the request</span>
+    configure<span class="pl-k">.</span>cancel <span class="pl-k">=</span> {
+        request<span class="pl-k">.</span>cancel();
+    }
+};</pre></div>
+
+<p>Then we just have to call the <code>super.init</code> method in the following manner:</p>
+
+<div class="highlight highlight-source-swift"><pre><span class="pl-k">super</span><span class="pl-k">.</span><span class="pl-k">init</span>(<span class="pl-k">weak</span>ified: <span class="pl-c1">false</span>, paused: <span class="pl-c1">false</span>, initClosure: initClosure);</pre></div>
+
+<p>And here we are: everywhere from the project, we can start this HTTP request and JSON parsing simply by writing:</p>
+
+<div class="highlight highlight-source-swift"><pre><span class="pl-k">let</span> task <span class="pl-k">=</span> QueryListRepos(user: <span class="pl-s"><span class="pl-pds">"</span>a given user<span class="pl-pds">"</span></span>)</pre></div>
+
+<p>Now we can set up the <code>success</code> and <code>failure</code> callbacks for this task. A valuable advantage is that we can configure these callbacks inside the <code>init</code> method of the task, and after starting it in the considered component.</p>
+
+<ul>
+<li>In the task <code>init</code> function:</li>
+</ul>
+
+<div class="highlight highlight-source-swift"><pre><span class="pl-k">class</span> QueryListRepos: Task<span class="pl-k">&lt;</span><span class="pl-c1">Void</span>, <span class="pl-c1">Array</span><span class="pl-k">&lt;</span>Repo<span class="pl-k">&gt;</span>, NSError<span class="pl-k">&gt;</span> {
+    <span class="pl-k">init</span>(user: <span class="pl-c1">String</span><span class="pl-k">!</span>) {
+        <span class="pl-k">let</span> initClosure: InitClosure <span class="pl-k">=</span> { progress, fulfill, reject, configure <span class="pl-k">in</span>
+            <span class="pl-c">// ...</span>
+        };
+
+        <span class="pl-k">super</span><span class="pl-k">.</span><span class="pl-k">init</span>(<span class="pl-k">weak</span>ified: <span class="pl-c1">false</span>, paused: <span class="pl-c1">false</span>, initClosure: initClosure);
+
+        <span class="pl-k">self</span><span class="pl-k">.</span>success { (value: <span class="pl-c1">Array</span><span class="pl-k">&lt;</span>Repo<span class="pl-k">&gt;</span>) <span class="pl-k">-&gt;</span> <span class="pl-c1">Void</span> <span class="pl-k">in</span>
+            <span class="pl-c1">print</span>(<span class="pl-s"><span class="pl-pds">"</span>[QueryListRepos:init] task success<span class="pl-pds">"</span></span>);
+        }<span class="pl-k">.</span>failure { (error: NSError?, isCancelled: <span class="pl-c1">Bool</span>) <span class="pl-k">-&gt;</span> <span class="pl-c1">Void</span> <span class="pl-k">in</span>
+            <span class="pl-c1">print</span>(<span class="pl-s"><span class="pl-pds">"</span>[QueryListRepos:init] task failure<span class="pl-pds">"</span></span>);
+        }
+    }
+}</pre></div>
+
+<ul>
+<li>In the view controller:</li>
+</ul>
+
+<div class="highlight highlight-source-swift"><pre><span class="pl-k">let</span> task <span class="pl-k">=</span> QueryListRepos(user: user);
+task<span class="pl-k">.</span>success { (value: <span class="pl-c1">Array</span><span class="pl-k">&lt;</span>Repo<span class="pl-k">&gt;</span>) <span class="pl-k">-&gt;</span> <span class="pl-c1">Void</span> <span class="pl-k">in</span>
+    <span class="pl-c1">print</span>(<span class="pl-s"><span class="pl-pds">"</span>[ViewController:listRepos] task success<span class="pl-pds">"</span></span>);
+}<span class="pl-k">.</span>failure { (error: NSError?, isCancelled: <span class="pl-c1">Bool</span>) <span class="pl-k">-&gt;</span> <span class="pl-c1">Void</span> <span class="pl-k">in</span>
+    <span class="pl-c1">print</span>(<span class="pl-s"><span class="pl-pds">"</span>[ViewController:listRepos] task failure<span class="pl-pds">"</span></span>);
+}</pre></div>
+
+<p>It provides the following output:</p>
+
+<pre><code>[QueryListRepos:init] task success
+[ViewController:listRepos] task success
+</code></pre>
+
+<p>The conclusion is: we can handle success/failure at task level (for a generic purpose for example) and in the starter component (for specific jobs ; in a view controller for example).</p>
+
+<h2>
+<a id="communication-between-components-with-passing-data" class="anchor" href="#communication-between-components-with-passing-data" aria-hidden="true"><span class="octicon octicon-link"></span></a>Communication between components with passing data</h2>
+
+<p>A typical example of a generic purpose that could be achieved in success/failure callbacks at task level is to fire a <code>NSNotification</code> to notify other components that the task is complete.</p>
+
+<p>The <code>NSNotification</code> concept in iOS is interesting by itself. Through the <code>NSNotificationCenter</code>, it becomes possible to communicate between various components in a same application, and transmit data to observer(s).</p>
+
+<p>Personally, I have been using it for many years now. Nevertheless, I'd like to have a more fluent syntax to set up my notifications and their observer(s). To solve this point, I found the following library: <a href="https://github.com/TakeScoop/Kugel">Kugel</a>.</p>
+
+<p><img src="https://camo.githubusercontent.com/39e379c16678549a49c611f1ad6304109bf25af6/68747470733a2f2f7777772e64726f70626f782e636f6d2f732f3237666a6733766a756764333066772f6b7567656c5f6c6f676f2e706e673f7261773d31" alt="Kugel logo"></p>
+
+<p>Just what I need: </p>
+
+<ul>
+<li>a wrapper to easily publish a notification, </li>
+<li>to subscribe to one or more notifications at the same time </li>
+<li>and unsubscribe from all notifications in one line.</li>
+</ul>
+
+<p>Simple, effective.</p>
+
+<p>So I've just defined an abstract class to encapsulate a common job for a termination query event.</p>
+
+<p>Here is the code:</p>
+
+<div class="highlight highlight-source-swift"><pre><span class="pl-k">public</span> <span class="pl-k">class</span> AbstractQueryNotification {
+
+    <span class="pl-k">private</span> <span class="pl-k">struct</span> UserInfo {
+        <span class="pl-k">static</span> <span class="pl-k">let</span> Results: <span class="pl-c1">String</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>results<span class="pl-pds">"</span></span>;
+        <span class="pl-k">static</span> <span class="pl-k">let</span> Error: <span class="pl-c1">String</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>error<span class="pl-pds">"</span></span>;
+        <span class="pl-k">static</span> <span class="pl-k">let</span> IsCancelled: <span class="pl-c1">String</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>isCancelled<span class="pl-pds">"</span></span>;
+    }
+
+    <span class="pl-k">public</span> <span class="pl-k">class</span> <span class="pl-k">func</span> <span class="pl-en">buildUserInfoSuccess</span>&lt;T <span class="pl-k">where</span> T: <span class="pl-c1">AnyObject</span>&gt;(results: T) <span class="pl-k">-&gt;</span> [NSObject: <span class="pl-c1">AnyObject</span>] {
+        <span class="pl-k">let</span> userInfo: [<span class="pl-c1">String</span>: <span class="pl-c1">AnyObject</span>] <span class="pl-k">=</span> [
+            UserInfo<span class="pl-k">.</span>Results:results
+        ];
+
+        <span class="pl-k">return</span> userInfo;
+    }
+
+    <span class="pl-k">public</span> <span class="pl-k">class</span> <span class="pl-k">func</span> <span class="pl-en">buildUserInfoFailure</span>(error: NSError, isCancelled: <span class="pl-c1">Bool</span>) <span class="pl-k">-&gt;</span> [NSObject: <span class="pl-c1">AnyObject</span>] {
+        <span class="pl-k">let</span> userInfo: [<span class="pl-c1">String</span>: <span class="pl-c1">AnyObject</span>] <span class="pl-k">=</span> [
+            UserInfo<span class="pl-k">.</span>Error: error,
+            UserInfo<span class="pl-k">.</span>IsCancelled: isCancelled
+        ];
+
+        <span class="pl-k">return</span> userInfo;
+    }
+
+    <span class="pl-k">private</span> <span class="pl-k">class</span> <span class="pl-k">func</span> <span class="pl-en">getUserInfoForKey</span>&lt;T&gt;(notification: NSNotification, key: <span class="pl-c1">String</span>) <span class="pl-k">-&gt;</span> T? {
+        <span class="pl-k">let</span> userInfo: [NSObject: <span class="pl-c1">AnyObject</span>] <span class="pl-k">=</span> notification<span class="pl-k">.</span>userInfo <span class="pl-k">as</span> [NSObject: <span class="pl-c1">AnyObject</span>]<span class="pl-k">!</span>;
+
+        <span class="pl-k">var</span> ret: T? <span class="pl-k">=</span> <span class="pl-c1">nil</span>;
+
+        <span class="pl-k">if</span> <span class="pl-k">let</span> value <span class="pl-k">=</span> userInfo[key] {
+            ret <span class="pl-k">=</span> value <span class="pl-k">as?</span> T
+        }
+
+        <span class="pl-k">return</span> ret;
+    }
+
+    <span class="pl-k">public</span> <span class="pl-k">class</span> <span class="pl-k">func</span> <span class="pl-en">results</span>&lt;T&gt;(notification: NSNotification) <span class="pl-k">-&gt;</span> T? {
+        <span class="pl-k">return</span> getUserInfoForKey(notification, key: UserInfo<span class="pl-k">.</span>Results);
+    }
+
+    <span class="pl-k">public</span> <span class="pl-k">class</span> <span class="pl-k">func</span> <span class="pl-en">error</span>(notification: NSNotification) <span class="pl-k">-&gt;</span> NSError? {
+        <span class="pl-k">return</span> getUserInfoForKey(notification, key: UserInfo<span class="pl-k">.</span>Error);
+    }
+
+    <span class="pl-k">public</span> <span class="pl-k">class</span> <span class="pl-k">func</span> <span class="pl-en">isCancelled</span>(notification: NSNotification) <span class="pl-k">-&gt;</span> <span class="pl-c1">Bool</span>? {
+        <span class="pl-k">return</span> getUserInfoForKey(notification, key: UserInfo<span class="pl-k">.</span>IsCancelled);
+    }
+}</pre></div>
+
+<p>It provides an elegant facade to build notifications and retrieve user’s info thanks to the helper method.</p>
+
+<p>Now, in the success/failure callbacks at task level, I've just to call the following:</p>
+
+<div class="highlight highlight-source-swift"><pre><span class="pl-k">self</span><span class="pl-k">.</span>success { (value: <span class="pl-c1">Array</span><span class="pl-k">&lt;</span>Repo<span class="pl-k">&gt;</span>) <span class="pl-k">-&gt;</span> <span class="pl-c1">Void</span> <span class="pl-k">in</span>
+    <span class="pl-k">let</span> userInfo: [NSObject: <span class="pl-c1">AnyObject</span>] <span class="pl-k">=</span> OnQueryListReposDidFinish<span class="pl-k">.</span>buildUserInfoSuccess(value <span class="pl-k">as</span> <span class="pl-c1">AnyObject</span>);
+    Kugel<span class="pl-k">.</span>publish(OnQueryListReposDidFinish<span class="pl-k">.</span>Name, object: <span class="pl-k">self</span>, userInfo:userInfo);
+}<span class="pl-k">.</span>failure { (error: NSError?, isCancelled: <span class="pl-c1">Bool</span>) <span class="pl-k">-&gt;</span> <span class="pl-c1">Void</span> <span class="pl-k">in</span>
+    <span class="pl-k">let</span> userInfo: [NSObject: <span class="pl-c1">AnyObject</span>] <span class="pl-k">=</span> OnQueryListReposDidFinish<span class="pl-k">.</span>buildUserInfoFailure(error<span class="pl-k">!</span>, isCancelled: isCancelled);
+    Kugel<span class="pl-k">.</span>publish(OnQueryListReposDidFinish<span class="pl-k">.</span>Name, object: <span class="pl-k">self</span>, userInfo:userInfo);
+}</pre></div>
+
+<p>Finally, just register a component (here, for example, a view controller) to be notified, in the following way:</p>
+
+<div class="highlight highlight-source-swift"><pre><span class="pl-k">class</span> <span class="pl-c">/*MyCustom*/</span>ViewController: <span class="pl-c">/*Super*/</span>ViewController<span class="pl-c">/*, {{optional protocols}}*/</span> {
+
+    <span class="pl-c">// ...</span>
+
+    <span class="pl-c">// MARK: - Lifecycle</span>
+
+    <span class="pl-k">override</span> <span class="pl-k">func</span> <span class="pl-en">viewDidLoad</span>() {
+        <span class="pl-k">super</span><span class="pl-k">.</span>viewDidLoad()
+
+        <span class="pl-c">// ...</span>
+
+        Kugel<span class="pl-k">.</span>subscribe(<span class="pl-k">self</span>, name: OnQueryListReposDidFinish<span class="pl-k">.</span>Name, selector: <span class="pl-s"><span class="pl-pds">"</span>onQueryListReposDidFinish:<span class="pl-pds">"</span></span>);
+    }
+
+    <span class="pl-k">deinit</span> {
+        Kugel<span class="pl-k">.</span>unsubscribeAll(<span class="pl-k">self</span>);
+    }
+
+    <span class="pl-c">// MARK: - Notifications management</span>
+
+    <span class="pl-k">func</span> <span class="pl-en">onQueryListReposDidFinish</span>(notification: NSNotification) {
+        <span class="pl-k">let</span> query: QueryListRepos <span class="pl-k">=</span> notification<span class="pl-k">.</span>object <span class="pl-k">as!</span> QueryListRepos;
+        <span class="pl-k">let</span> results: <span class="pl-c1">Array</span><span class="pl-k">&lt;</span>Repo<span class="pl-k">&gt;</span>? <span class="pl-k">=</span> OnQueryListReposDidFinish<span class="pl-k">.</span>results(notification);
+        <span class="pl-k">let</span> error: NSError? <span class="pl-k">=</span> OnQueryListReposDidFinish<span class="pl-k">.</span>error(notification);
+        <span class="pl-k">let</span> isCancelled: <span class="pl-c1">Bool</span>? <span class="pl-k">=</span> OnQueryListReposDidFinish<span class="pl-k">.</span>isCancelled(notification);
+
+        <span class="pl-c">// TODO: deal with notification</span>
+    }
+
+    <span class="pl-c">// ...</span>
+}</pre></div>
+
+<p>After that, a component can be notified and can handle data passing through the notification (and don't forget to unregister itself in the <code>deinit</code> method).</p>
+
+<h2>
+<a id="data-persistence" class="anchor" href="#data-persistence" aria-hidden="true"><span class="octicon octicon-link"></span></a>Data persistence</h2>
+
+<p>The entry point of the local storage is to use the built-in tool provided by Apple: <a href="https://developer.apple.com/library/tvos/documentation/Cocoa/Conceptual/CoreData/index.html">CoreData</a>.</p>
+
+<p>It provides a powerful system of storage, a user-friendly interface to declare model and automatic code generation.</p>
+
+<p>Nevertheless, developers can expect another layer of abstraction in order to provide a fluent API and clear method calls to simplify daily work and delete boilerplate code.</p>
+
+<h4>
+<a id="final-choice-corestore" class="anchor" href="#final-choice-corestore" aria-hidden="true"><span class="octicon octicon-link"></span></a>Final choice: CoreStore</h4>
+
+<p>Various libraries exist to provide a nice solution to my previously mentioned problem :</p>
+
+<ul>
+<li><a href="https://github.com/kaneshin/ActiveRecord">ActiveRecord</a></li>
+<li><a href="https://github.com/arkverse/SwiftRecord">SwiftRecord</a></li>
+<li><a href="https://github.com/michaelarmstrong/SuperRecord">SuperRecord</a></li>
+<li><a href="https://github.com/JohnEstropia/CoreStore">CoreStore</a></li>
+<li><a href="https://github.com/SwiftReactive/SugarRecord">SugarRecord</a></li>
+</ul>
+
+<p>I've decided to use CoreStore since it has very complete features and its API is fluent as well (a single line produces a set of coherent operations).</p>
+
+<p>After declaring the entities in the traditional way (i.e., using <code>.xcdatamodel</code> file and generating <code>NSManagedObject</code>), I can set up CoreStore.</p>
+
+<p>First, I define a singleton class to manage the <code>DataStack</code> object from CoreStore. I simply use it in its default configuration. The code is the following:</p>
+
+<div class="highlight highlight-source-swift"><pre><span class="pl-k">import</span> <span class="pl-c1">CoreStore</span>
+
+<span class="pl-k">final</span> <span class="pl-k">class</span> DataStoreManager: NSObject {
+
+    <span class="pl-c">// MARK: - Singleton set up</span>
+
+    <span class="pl-k">static</span> <span class="pl-k">let</span> sharedInstance <span class="pl-k">=</span> DataStoreManager();
+
+    <span class="pl-k">private</span> <span class="pl-k">override</span> <span class="pl-k">init</span>() {
+        <span class="pl-k">super</span><span class="pl-k">.</span><span class="pl-k">init</span>();
+
+        <span class="pl-c">// This prevents others from using the default '()' initializer for this class.</span>
+
+        <span class="pl-k">self</span><span class="pl-k">.</span>synthesizeDataStoreManager();
+    }
+
+    <span class="pl-c">// MARK: - CoreStore specific job</span>
+
+    <span class="pl-k">private</span> <span class="pl-k">static</span> <span class="pl-k">let</span> fileName: <span class="pl-c1">String</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>POC.sqlite<span class="pl-pds">"</span></span>;
+
+    <span class="pl-k">let</span> dataStack <span class="pl-k">=</span> DataStack();
+
+    <span class="pl-k">private</span> <span class="pl-k">func</span> <span class="pl-en">synthesizeDataStoreManager</span>() {
+        <span class="pl-k">try</span><span class="pl-k">!</span> <span class="pl-k">self</span><span class="pl-k">.</span>dataStack<span class="pl-k">.</span>addSQLiteStoreAndWait(fileName: DataStoreManager<span class="pl-k">.</span>fileName);
+    }
+}</pre></div>
+
+<p>Then, I edit the <code>QueryListRepos</code> class so that, after parsing the JSON data, we store it in the <code>DataStack</code> as follows:</p>
+
+<div class="highlight highlight-source-swift"><pre>DataStoreManager<span class="pl-k">.</span>sharedInstance<span class="pl-k">.</span>dataStack<span class="pl-k">.</span>beginSynchronous({ (transaction) <span class="pl-k">-&gt;</span> <span class="pl-c1">Void</span> <span class="pl-k">in</span>
+    <span class="pl-k">let</span> deleted: <span class="pl-c1">Int</span> <span class="pl-k">=</span> transaction<span class="pl-k">.</span>deleteAll(From(Repo))<span class="pl-k">!</span>;
+
+    <span class="pl-k">for</span> repoDto: RepoDTO <span class="pl-k">in</span> repos {
+        <span class="pl-k">let</span> repo: Repo <span class="pl-k">=</span> transaction<span class="pl-k">.</span>create(Into(Repo));
+        repo<span class="pl-k">.</span>populateWithDto(repoDto);
+    }
+
+    transaction<span class="pl-k">.</span>commit();
+});</pre></div>
+
+<p>And finally, I can retrieve these data from the database through the following call:</p>
+
+<div class="highlight highlight-source-swift"><pre>DataStoreManager<span class="pl-k">.</span>sharedInstance<span class="pl-k">.</span>dataStack<span class="pl-k">.</span>beginAsynchronous { (transaction) <span class="pl-k">-&gt;</span> <span class="pl-c1">Void</span> <span class="pl-k">in</span>
+    <span class="pl-k">let</span> repos: <span class="pl-c1">Array</span><span class="pl-k">&lt;</span>Repo<span class="pl-k">&gt;</span> <span class="pl-k">=</span> transaction<span class="pl-k">.</span>fetchAll(From(Repo))<span class="pl-k">!</span>;
+    <span class="pl-c">// deal with data...</span>
+}</pre></div>
+
+<h2>
+<a id="make-thinner-view-controllers" class="anchor" href="#make-thinner-view-controllers" aria-hidden="true"><span class="octicon octicon-link"></span></a>Make thinner view controllers</h2>
+
+<p>One of the most common issues in iOS development is a view controller becoming more and more massive.
+Especially, when using a <code>UITableView</code>, the view controller inflates hugely (considering <em>dataSource</em> and <em>delegate</em> methods).</p>
+
+<p>There already are articles talking about techniques to refactor code of view controllers:</p>
+
+<ul>
+<li><a href="https://www.objc.io/issues/1-view-controllers/lighter-view-controllers/">https://www.objc.io/issues/1-view-controllers/lighter-view-controllers/</a></li>
+<li><a href="http://clean-swift.com/refactoring-table-view-data-source-and-delegate-methods/">http://clean-swift.com/refactoring-table-view-data-source-and-delegate-methods/</a></li>
+</ul>
+
+<p>Another way to slim it down is to focus on business (specific) code and to delegate the boilerplate code to a useful library: <a href="https://github.com/nghialv/Hakuba">Hakuba</a>.</p>
+
+<p>The main idea is to remove the <code>UITableViewDataSource</code> and <code>UITableViewDelegate</code> protocols from our view controller.
+An instance of <code>Hakuba</code> will do this job for us.
+But we have to configure this instance so that it can achieve this goal.</p>
+
+<p>First, as usual, we will have to define a <code>UITableViewCell</code> subclass with its corresponding <code>.xib</code> file. But this time, it has to subclass <code>MYTableViewCell</code>.</p>
+
+<p>The next step is to define a model class that extends <code>MYCellModel</code>. Here we want to display a label and load an image from a remote URL. So, our model is the following:</p>
+
+<div class="highlight highlight-source-swift"><pre><span class="pl-k">class</span> RepoCellModel <span class="pl-k">:</span> MYCellModel {
+    <span class="pl-k">let</span> avatarUrl: <span class="pl-c1">String</span>;
+    <span class="pl-k">let</span> name: <span class="pl-c1">String</span>;
+
+    <span class="pl-k">init</span>(
+        avatarUrl: <span class="pl-c1">String</span>,
+        name: <span class="pl-c1">String</span>,
+        selectionHandler: MYSelectionHandler) {
+
+            <span class="pl-k">self</span><span class="pl-k">.</span>avatarUrl <span class="pl-k">=</span> avatarUrl;
+            <span class="pl-k">self</span><span class="pl-k">.</span>name <span class="pl-k">=</span> name;
+
+            <span class="pl-k">super</span><span class="pl-k">.</span><span class="pl-k">init</span>(cell: RepoCell<span class="pl-k">.</span><span class="pl-k">self</span>, height: <span class="pl-c1">57</span>, selectionHandler: selectionHandler)
+    }
+}</pre></div>
+
+<p>And our cell just has to override the <code>configureCell</code> function as follows:</p>
+
+<div class="highlight highlight-source-swift"><pre><span class="pl-k">class</span> RepoCell: MYTableViewCell {
+
+    <span class="pl-k">@IBOutlet</span> <span class="pl-k">weak</span> <span class="pl-k">var</span> imageViewAvatar: UIImageView<span class="pl-k">!</span>
+    <span class="pl-k">@IBOutlet</span> <span class="pl-k">weak</span> <span class="pl-k">var</span> labelName: UILabel<span class="pl-k">!</span>
+
+    <span class="pl-k">override</span> <span class="pl-k">func</span> <span class="pl-en">configureCell</span>(cellModel: MYCellModel) {
+        <span class="pl-k">super</span><span class="pl-k">.</span>configureCell(cellModel);
+
+        <span class="pl-k">if</span> <span class="pl-k">let</span> repoCellModel: RepoCellModel <span class="pl-k">=</span> (cellModel <span class="pl-k">as?</span> RepoCellModel) {
+
+            imageViewAvatar<span class="pl-k">.</span>kf_setImageWithURL(NSURL(string: repoCellModel<span class="pl-k">.</span>avatarUrl)<span class="pl-k">!</span>,
+                placeholderImage: UIImage(named: <span class="pl-s"><span class="pl-pds">"</span>Git_icon<span class="pl-pds">"</span></span>),
+                optionsInfo: [<span class="pl-k">.</span>Transition(ImageTransition<span class="pl-k">.</span>Fade(<span class="pl-c1">1</span>))]
+            );
+
+            imageViewAvatar<span class="pl-k">.</span>kf_showIndicatorWhenLoading <span class="pl-k">=</span> <span class="pl-c1">true</span>;
+
+            labelName<span class="pl-k">.</span>text <span class="pl-k">=</span> repoCellModel<span class="pl-k">.</span>name;
+
+        }
+    }
+}</pre></div>
+
+<p>N.B.: here we use the popular and powerful <a href="https://github.com/onevcat/Kingfisher">Kingfisher</a> library to download image from a remote URL.</p>
+
+<p>In fact, here is just what I could call a "good practice" for code structure with a relevant template of "MV" part of the "MVC" pattern.</p>
+
+<p>But now come the great benefits of Hakuba: let's go into the view controller.</p>
+
+<p>The first point is that we don't have to subclass the <code>UITableViewController</code> and override the <em>dataSource</em> and <em>delegate</em> methods anymore.
+We just define an outlet for our table view. To populate it, we simply define, for each row to display, an instance of our <code>RepoCellModel</code> and set it to the main section of our table view thanks to the <code>Hakuba</code> instance. Here is the code:</p>
+
+<div class="highlight highlight-source-swift"><pre><span class="pl-k">func</span> <span class="pl-en">resetRepoCellModels</span>() {
+    <span class="pl-k">var</span> cellModels: <span class="pl-c1">Array</span><span class="pl-k">&lt;</span>RepoCellModel<span class="pl-k">&gt;</span> <span class="pl-k">=</span> <span class="pl-c1">Array</span><span class="pl-k">&lt;</span>RepoCellModel<span class="pl-k">&gt;</span>();
+
+    <span class="pl-k">for</span> repo: Repo <span class="pl-k">in</span> <span class="pl-k">self</span><span class="pl-k">.</span>data {
+        <span class="pl-k">let</span> cellModel: RepoCellModel <span class="pl-k">=</span> RepoCellModel(avatarUrl: repo<span class="pl-k">.</span>avatarUrl<span class="pl-k">!</span>, name: repo<span class="pl-k">.</span>name<span class="pl-k">!</span>) { _ <span class="pl-k">in</span>
+            <span class="pl-c1">print</span>(<span class="pl-s"><span class="pl-pds">"</span>on click item<span class="pl-pds">"</span></span>);
+        };
+
+        cellModels<span class="pl-k">.</span>append(cellModel);
+    }
+
+    <span class="pl-k">self</span><span class="pl-k">.</span>hakuba[<span class="pl-c1">0</span>]<span class="pl-k">.</span>reset(cellModels)
+        <span class="pl-k">.</span>slide(<span class="pl-k">.</span>Fade);
+}</pre></div>
+
+<p>Conclusion: the rows are displayed in our table view with a nice fade transition and the click event is managed by <code>Hakuba</code>, calling the selection handler we've defined. </p>
+
+<p>Target met: our view controller is definitely thinner!</p>
+
+<h2>
+<a id="the-viper-architecture" class="anchor" href="#the-viper-architecture" aria-hidden="true"><span class="octicon octicon-link"></span></a>The VIPER architecture</h2>
+
+<p>Key concepts to grasp in this section are the following:</p>
+
+<ul>
+<li>Single responsability principle
+
+<ul>
+<li><a href="http://www.objectmentor.com/resources/articles/srp.pdf">http://www.objectmentor.com/resources/articles/srp.pdf</a></li>
+</ul>
+</li>
+<li>Test driven development (TDD)</li>
+<li>Behavior driven development (BDD)</li>
+<li>Protocol-Oriented Programming (POP)
+
+<ul>
+<li><a href="https://developer.apple.com/videos/play/wwdc2015-408/">https://developer.apple.com/videos/play/wwdc2015-408/</a></li>
+<li><a href="http://code.tutsplus.com/tutorials/protocol-oriented-programming-in-swift-2--cms-24979">http://code.tutsplus.com/tutorials/protocol-oriented-programming-in-swift-2--cms-24979</a></li>
+</ul>
+</li>
+</ul>
+
+<p>This section is mainly based on the following article [<a href="https://www.objc.io/issues/13-architecture/viper/">https://www.objc.io/issues/13-architecture/viper/</a>].</p>
+
+<h3>
+<a id="but-what-is-viper" class="anchor" href="#but-what-is-viper" aria-hidden="true"><span class="octicon octicon-link"></span></a>But what is VIPER?</h3>
+
+<blockquote>
+<p>VIPER is an application of <a href="https://blog.8thlight.com/uncle-bob/2012/08/13/the-clean-architecture.html">Clean Architecture</a> to iOS apps. The word VIPER is a backronym for View, Interactor, Presenter, Entity, and Routing.</p>
+</blockquote>
+
+<p><img src="https://www.objc.io/images/issue-13/2014-06-07-viper-intro-0a53d9f8.jpg" alt="VIPER illustration"></p>
+
+<p>The first assessments we could establish after looking at Apple’s ViewController design are the following:</p>
+
+<blockquote>
+<ul>
+<li>It has multi responsibility (data sourcing, delegation, view interaction, data presentation).</li>
+<li>Commonly, it is business logic in developers’ mind.</li>
+<li>It's tightly coupled to the view (it manages a specific lifecycle).</li>
+</ul>
+</blockquote>
+
+<p>Leading to a massive file that is very difficult (impossible?) to test.</p>
+
+<p>It's commonly hard to understand and review the code of these classes.</p>
+
+<p>The main idea of the clean architecture is to structure the code to distinguish:</p>
+
+<ul>
+<li>the framework we are leaning on,</li>
+<li>the UI we present to the end user,</li>
+<li>the external entities (coming from a remote server for example).</li>
+</ul>
+
+<p>Following these principles, the code becomes:</p>
+
+<ul>
+<li>easy to read,</li>
+<li>easy to understand, </li>
+<li>easy to test, </li>
+<li>easy to maintain.</li>
+</ul>
+
+<p>And thanks to the VIPER architecture, we are now considering a new unmentioned issue: the navigation (the way we are routing between screens).</p>
+
+<p>So, the key concepts to understund concerning VIPER are:</p>
+
+<ul>
+<li>Module<br>
+
+<ul>
+<li>It gathers all the VIPER concepts to a specific place that corresponds to a specific use case of the application</li>
+</ul>
+</li>
+<li>View
+
+<ul>
+<li>Shows content provided by the presenter</li>
+<li>Catches user's interactions and notifies it to the presenter</li>
+</ul>
+</li>
+<li>Presenter
+
+<ul>
+<li>Knows nothing about the UI but knows the logic to format data to display</li>
+<li>Is notified by the view about actions and dispatch them such as:
+
+<ul>
+<li>a navigation should start: it asks to the routing (a.k.a. "wireframe")</li>
+<li>a request should start: it sends this command to the interactor</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Interactor
+
+<ul>
+<li>Specific job to respond to a single use case</li>
+<li>Requests data managers to load data from network and/or from local storage</li>
+<li>Works with simple objects</li>
+</ul>
+</li>
+<li>Entities (a.k.a. "data managers")
+
+<ul>
+<li>Is called by the interactor, handles the job and encapsulates entities to provide it as a result to the interactor</li>
+<li>Knows if data should be loaded from local storage or from a remote server</li>
+</ul>
+</li>
+<li>Routing (a.k.a. "wireframe")
+
+<ul>
+<li>Is responsible for setting up all the pieces of a given module</li>
+<li>Knows how to navigate from this module</li>
+<li>Is responsible for transitions animations</li>
+</ul>
+</li>
+</ul>
+
+<p>A convenient way to write a new module is to begin by developing its interactor first, and then the presenter.</p>
+
+<p>It's very easy to test since we could test each concept independently, and we just have to provide "mock" objects for the concepts it interacts with.</p>
+
+<p>An elegant tool to set up modules easily is "Boa" (<a href="https://github.com/team-supercharge/boa">https://github.com/team-supercharge/boa</a>).
+With a simple command line, we can add a new module to our project.
+It's pretty much the same as the "Viper Module Generator" (<a href="https://github.com/teambox/viper-module-generator">https://github.com/teambox/viper-module-generator</a>). Both are relevant. Both are complementary as well. The first provides a common structure for all the modules, and then the dedicated folders for each module. The second sets up a clear distinction between the local data manager and the API data manager.</p>
+
+<p>I'll combine these tools by adding a new module using "Boa" and distinguishing data managers in the "Viper Module Generator" way.</p>
+
+<p>Let's add our first module:</p>
+
+<ul>
+<li>we go to the root directory of our project</li>
+<li>enter the project directory</li>
+<li>type the following command line to start a "Boa" project:</li>
+</ul>
+
+<pre><code>$ boa init
+</code></pre>
+
+<ul>
+<li>fill the form with specific information about the project</li>
+<li>type the following command line to add a specific module</li>
+</ul>
+
+<pre><code>$ vipergen generate ListRepoModule --path=.
+</code></pre>
+
+<ul>
+<li>add it to the Xcode project structure (with the "Copy items if needed" checked)</li>
+</ul>
+
+<p>And here we have a clear and clean code structure, providing all we need to develop our use cases.</p>
+
+<p>As a way to communicate between interactors and data stores, I'll define such "callback" enum:</p>
+
+<div class="highlight highlight-source-swift"><pre><span class="pl-k">enum</span> ListRepoModuleLocalDataManagerDeleteReposResult {
+    <span class="pl-k">case</span> Success(deleted: NSNumber);
+    <span class="pl-k">case</span> Failure(error: NSError);
+}</pre></div>
+
+<p>and then declare the function with a callback parameter as follows:</p>
+
+<div class="highlight highlight-source-swift"><pre><span class="pl-k">func</span> <span class="pl-en">deleteRepos</span>(user: <span class="pl-c1">String</span>, completionHandler: (ListRepoModuleLocalDataManagerDeleteReposResult) <span class="pl-k">-&gt;</span> <span class="pl-c1">Void</span>);</pre></div>
+
+<p>That will be called like this:</p>
+
+<div class="highlight highlight-source-swift"><pre>localDatamanager?<span class="pl-k">.</span>deleteRepos(user) {
+    [<span class="pl-k">unowned</span> <span class="pl-k">self</span>](result) <span class="pl-k">-&gt;</span> <span class="pl-c1">Void</span> <span class="pl-k">in</span>
+
+    <span class="pl-k">switch</span>(result) {
+        <span class="pl-k">case</span> <span class="pl-k">.</span>Success(_):
+            <span class="pl-k">self</span><span class="pl-k">.</span>saveRepos(user, repos: repos, pulledToRefresh: pulledToRefresh);
+            <span class="pl-k">break</span>;
+        <span class="pl-k">case</span> <span class="pl-k">.</span>Failure(<span class="pl-k">let</span> error):
+            <span class="pl-k">self</span><span class="pl-k">.</span>presenter?<span class="pl-k">.</span>presentError(error);
+            <span class="pl-k">break</span>;
+        }
+    }</pre></div>
+
+<p>Following POP guidelines, we'll be able to test such piece of code easily by mocking function and providing results.</p>
+
+<h2>
+<a id="unit-testing" class="anchor" href="#unit-testing" aria-hidden="true"><span class="octicon octicon-link"></span></a>Unit testing</h2>
+
+<p>Let's talk about testing now. Here I introduced two coupled libraries: <a href="https://github.com/Quick/Nimble">Nimble</a> (for fluent assertions API) and <a href="https://github.com/Quick/Quick">Quick</a> (to write tests in a BDD way).</p>
+
+<p><img src="https://camo.githubusercontent.com/bcd71a03c67bd89a4cfc390c7c22cc4f06db91b1/687474703a2f2f662e636c2e6c792f6974656d732f30723145313932433152306232673251336832772f517569636b4c6f676f5f436f6c6f722e706e67" alt="Quick logo"></p>
+
+<p>I'll present them through a concrete test case of the <code>ListRepoModuleInteractor</code> class.</p>
+
+<p>Thanks to the VIPER architecture, I'll mock all the surrounding concepts (<code>Presenter</code>, <code>DataManager</code>) to achieve the expected behavior.</p>
+
+<p>So, I begin by writing the skeleton of my test case:</p>
+
+<div class="highlight highlight-source-swift"><pre><span class="pl-k">class</span> SpecListRepoModuleInteractor: QuickSpec {
+
+    <span class="pl-k">override</span> <span class="pl-k">func</span> <span class="pl-en">spec</span>() {
+        context(<span class="pl-s"><span class="pl-pds">"</span>if it is the perfect nominal case<span class="pl-pds">"</span></span>) {
+            it(<span class="pl-s"><span class="pl-pds">"</span>needs to call all the functions in the scenario<span class="pl-pds">"</span></span>) {
+                <span class="pl-c">// write assertions</span>
+            }
+        }
+    }
+
+}</pre></div>
+
+<p>First, we must inherit from the <code>QuickSpec</code> class (that itself extends <code>XCTestCase</code> class).
+Then, we have to override the <code>spec()</code> function so that our tests are launched. Now we could write the tests in the BDD way (describing the context, the needs and writing the suitable assertions).</p>
+
+<p>Now, we need to mock the playing components. Thanks to the POP, I simply have to respond to the specified protocols.</p>
+
+<ul>
+<li>The presenter:</li>
+</ul>
+
+<div class="highlight highlight-source-swift"><pre><span class="pl-k">class</span> Mock_ListRepoModulePresenter: ListRepoModuleInteractorOutputProtocol {
+    <span class="pl-k">init</span>() {}
+
+    <span class="pl-k">var</span> presentLoadingFromNetworkWasCalled: <span class="pl-c1">Bool</span> <span class="pl-k">=</span> <span class="pl-c1">false</span>;
+    <span class="pl-k">var</span> presentLoadingFromNetworkPulledToRefresh: <span class="pl-c1">Bool</span> <span class="pl-k">=</span> <span class="pl-c1">false</span>;
+    <span class="pl-k">func</span> <span class="pl-en">presentLoadingFromNetwork</span>(pulledToRefresh: <span class="pl-c1">Bool</span>) {
+        presentLoadingFromNetworkWasCalled <span class="pl-k">=</span> <span class="pl-c1">true</span>;
+        presentLoadingFromNetworkPulledToRefresh <span class="pl-k">=</span> pulledToRefresh;
+    }
+
+    <span class="pl-k">var</span> presentLoadingFromDatabaseWasCalled: <span class="pl-c1">Bool</span> <span class="pl-k">=</span> <span class="pl-c1">false</span>;
+    <span class="pl-k">var</span> presentLoadingFromDatabasePulledToRefresh: <span class="pl-c1">Bool</span> <span class="pl-k">=</span> <span class="pl-c1">false</span>;
+    <span class="pl-k">func</span> <span class="pl-en">presentLoadingFromDatabase</span>(pulledToRefresh: <span class="pl-c1">Bool</span>) {
+        presentLoadingFromDatabaseWasCalled <span class="pl-k">=</span> <span class="pl-c1">true</span>;
+        presentLoadingFromDatabasePulledToRefresh <span class="pl-k">=</span> pulledToRefresh;
+    }
+
+    <span class="pl-k">var</span> presentReposWasCalled: <span class="pl-c1">Bool</span> <span class="pl-k">=</span> <span class="pl-c1">false</span>;
+    <span class="pl-k">var</span> presentReposRepos: <span class="pl-c1">Array</span><span class="pl-k">&lt;</span>Repo<span class="pl-k">&gt;</span> <span class="pl-k">=</span> [];
+    <span class="pl-k">var</span> presentReposPulledToRefresh: <span class="pl-c1">Bool</span> <span class="pl-k">=</span> <span class="pl-c1">false</span>;
+    <span class="pl-k">func</span> <span class="pl-en">presentRepos</span>(repos: <span class="pl-c1">Array</span><span class="pl-k">&lt;</span>Repo<span class="pl-k">&gt;</span>, pulledToRefresh: <span class="pl-c1">Bool</span>) {
+        presentReposWasCalled <span class="pl-k">=</span> <span class="pl-c1">true</span>;
+        presentReposRepos <span class="pl-k">=</span> repos;
+        presentReposPulledToRefresh <span class="pl-k">=</span> pulledToRefresh;
+    }
+
+    <span class="pl-k">var</span> presentErrorWasCalled: <span class="pl-c1">Bool</span> <span class="pl-k">=</span> <span class="pl-c1">false</span>;
+    <span class="pl-k">func</span> <span class="pl-en">presentError</span>(error: NSError) {
+        presentErrorWasCalled <span class="pl-k">=</span> <span class="pl-c1">true</span>;
+    }
+}</pre></div>
+
+<ul>
+<li>The API data manager:</li>
+</ul>
+
+<div class="highlight highlight-source-swift"><pre><span class="pl-k">class</span> Mock_ListRepoModuleAPIDataManager: ListRepoModuleAPIDataManagerInputProtocol {
+
+    <span class="pl-k">var</span> mockRepos: <span class="pl-c1">Array</span><span class="pl-k">&lt;</span>RepoDTO<span class="pl-k">&gt;</span> <span class="pl-k">=</span> <span class="pl-c1">Array</span><span class="pl-k">&lt;</span>RepoDTO<span class="pl-k">&gt;</span>();
+    <span class="pl-k">init</span>() {
+        <span class="pl-k">let</span> repo: RepoDTO <span class="pl-k">=</span> RepoDTO();
+        repo<span class="pl-k">.</span>id <span class="pl-k">=</span> <span class="pl-c1">1</span>;
+        repo<span class="pl-k">.</span>name <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>test<span class="pl-pds">"</span></span>;
+
+        mockRepos<span class="pl-k">.</span>append(repo);
+    }
+
+    <span class="pl-k">var</span> getReposWasCalled: <span class="pl-c1">Bool</span> <span class="pl-k">=</span> <span class="pl-c1">false</span>;
+    <span class="pl-k">var</span> getReposUser: <span class="pl-c1">String</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-pds">"</span></span>;
+    <span class="pl-k">func</span> <span class="pl-en">getRepos</span>(user: <span class="pl-c1">String</span>, completionHandler: (ListRepoModuleAPIDataManagerGetReposResult) <span class="pl-k">-&gt;</span> <span class="pl-c1">Void</span>) {
+        getReposWasCalled <span class="pl-k">=</span> <span class="pl-c1">true</span>;
+        getReposUser <span class="pl-k">=</span> user;
+
+        <span class="pl-c">// returns mock repos</span>
+        completionHandler(ListRepoModuleAPIDataManagerGetReposResult<span class="pl-k">.</span>Success(repos: <span class="pl-k">self</span><span class="pl-k">.</span>mockRepos));
+    }
+}</pre></div>
+
+<ul>
+<li>The local data manager:</li>
+</ul>
+
+<div class="highlight highlight-source-swift"><pre><span class="pl-k">class</span> Mock_ListRepoModuleLocalDatamanager: ListRepoModuleLocalDataManagerInputProtocol {
+    <span class="pl-k">var</span> mockRepos: <span class="pl-c1">Array</span><span class="pl-k">&lt;</span>Repo<span class="pl-k">&gt;</span> <span class="pl-k">=</span> <span class="pl-c1">Array</span><span class="pl-k">&lt;</span>Repo<span class="pl-k">&gt;</span>();
+    <span class="pl-k">init</span>() {
+        <span class="pl-k">let</span> repo: Repo <span class="pl-k">=</span> Repo();
+        mockRepos<span class="pl-k">.</span>append(repo);
+    }
+
+    <span class="pl-k">var</span> deleteReposWasCalled: <span class="pl-c1">Bool</span> <span class="pl-k">=</span> <span class="pl-c1">false</span>;
+    <span class="pl-k">var</span> deleteReposUser: <span class="pl-c1">String</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-pds">"</span></span>;
+    <span class="pl-k">func</span> <span class="pl-en">deleteRepos</span>(user: <span class="pl-c1">String</span>, completionHandler: (ListRepoModuleLocalDataManagerDeleteReposResult) <span class="pl-k">-&gt;</span> <span class="pl-c1">Void</span>) {
+        deleteReposWasCalled <span class="pl-k">=</span> <span class="pl-c1">true</span>;
+        deleteReposUser <span class="pl-k">=</span> user;
+        completionHandler(ListRepoModuleLocalDataManagerDeleteReposResult<span class="pl-k">.</span>Success(deleted: <span class="pl-c1">1</span>));
+    }
+
+    <span class="pl-k">var</span> saveReposWasCalled: <span class="pl-c1">Bool</span> <span class="pl-k">=</span> <span class="pl-c1">false</span>;
+    <span class="pl-k">func</span> <span class="pl-en">saveRepos</span>(repos: <span class="pl-c1">Array</span><span class="pl-k">&lt;</span>RepoDTO<span class="pl-k">&gt;</span>, completionHandler: (ListRepoModuleLocalDataManagerSaveReposResult) <span class="pl-k">-&gt;</span> <span class="pl-c1">Void</span>) {
+        saveReposWasCalled <span class="pl-k">=</span> <span class="pl-c1">true</span>;
+        completionHandler(ListRepoModuleLocalDataManagerSaveReposResult<span class="pl-k">.</span>Success());
+    }
+
+    <span class="pl-k">var</span> getReposWasCalled: <span class="pl-c1">Bool</span> <span class="pl-k">=</span> <span class="pl-c1">false</span>;
+    <span class="pl-k">var</span> getReposUser: <span class="pl-c1">String</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-pds">"</span></span>;
+    <span class="pl-k">func</span> <span class="pl-en">getRepos</span>(user: <span class="pl-c1">String</span>, completionHandler: (ListRepoModuleLocalDataManagerGetReposResult) <span class="pl-k">-&gt;</span> <span class="pl-c1">Void</span>) {
+        getReposWasCalled <span class="pl-k">=</span> <span class="pl-c1">true</span>;
+        getReposUser <span class="pl-k">=</span> user;
+
+        <span class="pl-c">// returns mock repos</span>
+        completionHandler(ListRepoModuleLocalDataManagerGetReposResult<span class="pl-k">.</span>Success(repos: <span class="pl-k">self</span><span class="pl-k">.</span>mockRepos));
+    }
+}</pre></div>
+
+<p>And now, the <code>spec</code> function becomes the following:</p>
+
+<div class="highlight highlight-source-swift"><pre><span class="pl-k">override</span> <span class="pl-k">func</span> <span class="pl-en">spec</span>() {
+    describe(<span class="pl-s"><span class="pl-pds">"</span>When user asks for loading repos<span class="pl-pds">"</span></span>) {
+        context(<span class="pl-s"><span class="pl-pds">"</span>and when it is the perfect nominal case<span class="pl-pds">"</span></span>) {
+            <span class="pl-k">let</span> interactor: ListRepoModuleInteractorInputProtocol <span class="pl-k">=</span> ListRepoModuleInteractor();
+            <span class="pl-k">let</span> presenter: Mock_ListRepoModulePresenter <span class="pl-k">=</span> Mock_ListRepoModulePresenter();
+            <span class="pl-k">let</span> APIDataManager: Mock_ListRepoModuleAPIDataManager <span class="pl-k">=</span> Mock_ListRepoModuleAPIDataManager();
+            <span class="pl-k">let</span> localDatamanager: Mock_ListRepoModuleLocalDatamanager <span class="pl-k">=</span> Mock_ListRepoModuleLocalDatamanager();
+
+            beforeEach {
+                <span class="pl-c">// given</span>
+                interactor<span class="pl-k">.</span>presenter <span class="pl-k">=</span> presenter;
+                interactor<span class="pl-k">.</span>APIDataManager <span class="pl-k">=</span> APIDataManager;
+                interactor<span class="pl-k">.</span>localDatamanager <span class="pl-k">=</span> localDatamanager;
+
+                <span class="pl-c">// when</span>
+                interactor<span class="pl-k">.</span>loadRepos(<span class="pl-s"><span class="pl-pds">"</span>test<span class="pl-pds">"</span></span>, pulledToRefresh: <span class="pl-c1">false</span>);
+            }
+
+            it(<span class="pl-s"><span class="pl-pds">"</span>needs to call all the functions in the scenario<span class="pl-pds">"</span></span>) {
+                <span class="pl-c">// then</span>
+
+                <span class="pl-c">// APIDataManager</span>
+                expect(APIDataManager<span class="pl-k">.</span>getReposWasCalled)<span class="pl-k">.</span>to(beTrue());
+                expect(APIDataManager<span class="pl-k">.</span>getReposUser)<span class="pl-k">.</span>to(equal(<span class="pl-s"><span class="pl-pds">"</span>test<span class="pl-pds">"</span></span>));
+
+                <span class="pl-c">// localDatamanager</span>
+                expect(localDatamanager<span class="pl-k">.</span>deleteReposWasCalled)<span class="pl-k">.</span>to(beTrue());
+                expect(localDatamanager<span class="pl-k">.</span>deleteReposUser)<span class="pl-k">.</span>to(equal(<span class="pl-s"><span class="pl-pds">"</span>test<span class="pl-pds">"</span></span>));
+
+                expect(localDatamanager<span class="pl-k">.</span>saveReposWasCalled)<span class="pl-k">.</span>to(beTrue());
+
+                expect(localDatamanager<span class="pl-k">.</span>getReposWasCalled)<span class="pl-k">.</span>to(beTrue());
+                expect(localDatamanager<span class="pl-k">.</span>getReposUser)<span class="pl-k">.</span>to(equal(<span class="pl-s"><span class="pl-pds">"</span>test<span class="pl-pds">"</span></span>));
+
+                <span class="pl-c">// presenter</span>
+                expect(presenter<span class="pl-k">.</span>presentLoadingFromNetworkWasCalled)<span class="pl-k">.</span>to(beTrue());
+                expect(presenter<span class="pl-k">.</span>presentLoadingFromNetworkPulledToRefresh)<span class="pl-k">.</span>to(beFalse());
+
+                expect(presenter<span class="pl-k">.</span>presentLoadingFromDatabaseWasCalled)<span class="pl-k">.</span>to(beTrue());
+                expect(presenter<span class="pl-k">.</span>presentLoadingFromDatabasePulledToRefresh)<span class="pl-k">.</span>to(beFalse());
+
+                expect(presenter<span class="pl-k">.</span>presentReposWasCalled)<span class="pl-k">.</span>to(beTrue());
+                expect(presenter<span class="pl-k">.</span>presentReposRepos)<span class="pl-k">.</span>to(equal(localDatamanager<span class="pl-k">.</span>mockRepos));
+                expect(presenter<span class="pl-k">.</span>presentReposPulledToRefresh)<span class="pl-k">.</span>to(beFalse());
+
+                expect(presenter<span class="pl-k">.</span>presentErrorWasCalled)<span class="pl-k">.</span>to(beFalse());
+            }
+        }
+    }
+}</pre></div>
+
+<p>And all the assertions pass successfully!</p>
+
+<blockquote>
+<p>A little note about mocking in Swift is that we could have a look to the following library: <a href="https://github.com/mflint/SwiftMock">https://github.com/mflint/SwiftMock</a>. It's still under development but it provides a great answer to the traditional mocking and stubbing requirements when writing tests.</p>
+</blockquote>
+
+<h2>
+<a id="conclusion" class="anchor" href="#conclusion" aria-hidden="true"><span class="octicon octicon-link"></span></a>Conclusion</h2>
+
+<p>All these tools/libraries combined together lead us to a clear, clean, reliable and testable project template where we can add and maintain features (i.e. modules) easily, in a very intelligible way. 
+What we've got is a robust arsenal of components that are interchangeable if needed.</p>
+
+<h2>
+<a id="relevant-libraries" class="anchor" href="#relevant-libraries" aria-hidden="true"><span class="octicon octicon-link"></span></a>Relevant libraries</h2>
+
+<h3>
+<a id="kingfisher-httpsgithubcomonevcatkingfisher" class="anchor" href="#kingfisher-httpsgithubcomonevcatkingfisher" aria-hidden="true"><span class="octicon octicon-link"></span></a>Kingfisher: <a href="https://github.com/onevcat/Kingfisher">https://github.com/onevcat/Kingfisher</a>
+</h3>
+
+<blockquote>
+<p>A lightweight and pure Swift implemented library for downloading and caching image from the web.</p>
+</blockquote>
+
+<p><img src="https://raw.githubusercontent.com/onevcat/Kingfisher/master/images/logo.png" alt="Kingfisher logo"></p>
+
+<h3>
+<a id="async-httpsgithubcomduemunkasync" class="anchor" href="#async-httpsgithubcomduemunkasync" aria-hidden="true"><span class="octicon octicon-link"></span></a>Async: <a href="https://github.com/duemunk/Async">https://github.com/duemunk/Async</a>
+</h3>
+
+<blockquote>
+<p>Syntactic sugar in Swift for asynchronous dispatches in Grand Central Dispatch (<a href="https://developer.apple.com/library/ios/documentation/Performance/Reference/GCD_libdispatch_Ref/index.html">GCD</a>)</p>
+</blockquote>
+
+<h3>
+<a id="dollarswift-httpsgithubcomankurpdollarswift" class="anchor" href="#dollarswift-httpsgithubcomankurpdollarswift" aria-hidden="true"><span class="octicon octicon-link"></span></a>Dollar.swift: <a href="https://github.com/ankurp/Dollar.swift">https://github.com/ankurp/Dollar.swift</a>
+</h3>
+
+<blockquote>
+<p>A functional tool-belt for Swift Language similar to Lo-Dash or Underscore.js in Javascript <a href="http://www.dollarswift.org">http://www.dollarswift.org</a></p>
+</blockquote>
+
+<h3>
+<a id="exswift-httpsgithubcompnreexswift" class="anchor" href="#exswift-httpsgithubcompnreexswift" aria-hidden="true"><span class="octicon octicon-link"></span></a>ExSwift: <a href="https://github.com/pNre/ExSwift">https://github.com/pNre/ExSwift</a>
+</h3>
+
+<blockquote>
+<p>A set of Swift extensions for standard types and classes.</p>
+</blockquote>
+
+<h3>
+<a id="netfox-httpsgithubcomkasketisnetfox" class="anchor" href="#netfox-httpsgithubcomkasketisnetfox" aria-hidden="true"><span class="octicon octicon-link"></span></a>netfox: <a href="https://github.com/kasketis/netfox">https://github.com/kasketis/netfox</a>
+</h3>
+
+<blockquote>
+<p>A lightweight, one line setup, iOS network debugging library!</p>
+</blockquote>
+
+<p><img src="https://raw.githubusercontent.com/kasketis/netfox/master/assets/netfox_logo.png" alt="netfox logo"></p>
+
+<h3>
+<a id="qorumlogs-httpsgithubcomgoktugyilqorumlogs" class="anchor" href="#qorumlogs-httpsgithubcomgoktugyilqorumlogs" aria-hidden="true"><span class="octicon octicon-link"></span></a>QorumLogs: <a href="https://github.com/goktugyil/QorumLogs">https://github.com/goktugyil/QorumLogs</a>
+</h3>
+
+<blockquote>
+<p>Swift Logging Utility for Xcode &amp; Google Docs</p>
+</blockquote>
+
+<h3>
+<a id="snapkit-httpsgithubcomsnapkitsnapkit" class="anchor" href="#snapkit-httpsgithubcomsnapkitsnapkit" aria-hidden="true"><span class="octicon octicon-link"></span></a>SnapKit: <a href="https://github.com/SnapKit/SnapKit">https://github.com/SnapKit/SnapKit</a>
+</h3>
+
+<blockquote>
+<p>A Swift Autolayout DSL for iOS &amp; OS X <a href="http://snapkit.io">http://snapkit.io</a></p>
+</blockquote>
+
+<p><img src="https://camo.githubusercontent.com/446acab40bc68602c8046deddbc60296906ce2d6/687474703a2f2f736e61706b69742e696f2f696d616765732f62616e6e65722e706e67" alt="SnapKit logo"></p>
+
+<h3>
+<a id="pkhud-httpsgithubcompkluzpkhud" class="anchor" href="#pkhud-httpsgithubcompkluzpkhud" aria-hidden="true"><span class="octicon octicon-link"></span></a>PKHUD: <a href="https://github.com/pkluz/PKHUD">https://github.com/pkluz/PKHUD</a>
+</h3>
+
+<blockquote>
+<p>A Swift based reimplementation of the Apple HUD (Volume, Ringer, Rotation,…) for iOS 8.</p>
+</blockquote>
+
+<p><img src="https://raw.githubusercontent.com/pkluz/PKHUD/master/README_hero.png" alt="PKHUD logo"></p>
+
+<h3>
+<a id="statefulviewcontroller-httpsgithubcomaschuchstatefulviewcontroller" class="anchor" href="#statefulviewcontroller-httpsgithubcomaschuchstatefulviewcontroller" aria-hidden="true"><span class="octicon octicon-link"></span></a>StatefulViewController: <a href="https://github.com/aschuch/StatefulViewController">https://github.com/aschuch/StatefulViewController</a>
+</h3>
+
+<blockquote>
+<p>Placeholder views based on content, loading, error or empty states</p>
+</blockquote>
+
+<h3>
+<a id="uicolorhex-now-swift-httpsgithubcomyeahdongcnuicolor-hex-swift" class="anchor" href="#uicolorhex-now-swift-httpsgithubcomyeahdongcnuicolor-hex-swift" aria-hidden="true"><span class="octicon octicon-link"></span></a>UIColor+Hex, now Swift.: <a href="https://github.com/yeahdongcn/UIColor-Hex-Swift">https://github.com/yeahdongcn/UIColor-Hex-Swift</a>
+</h3>
+
+<blockquote>
+<p>Convenience method for creating autoreleased color using RGBA hex string.</p>
+</blockquote>
+
+<h3>
+<a id="appversionmonitor-httpsgithubcommuukiiappversionmonitor" class="anchor" href="#appversionmonitor-httpsgithubcommuukiiappversionmonitor" aria-hidden="true"><span class="octicon octicon-link"></span></a>AppVersionMonitor: <a href="https://github.com/muukii/AppVersionMonitor">https://github.com/muukii/AppVersionMonitor</a>
+</h3>
+
+<blockquote>
+<p>Monitor iOS app version easily.</p>
+</blockquote>
+
+<h3>
+<a id="keyboardobserver-httpsgithubcommorizotterkeyboardobserver" class="anchor" href="#keyboardobserver-httpsgithubcommorizotterkeyboardobserver" aria-hidden="true"><span class="octicon octicon-link"></span></a>KeyboardObserver: <a href="https://github.com/morizotter/KeyboardObserver">https://github.com/morizotter/KeyboardObserver</a>
+</h3>
+
+<blockquote>
+<p>Monitor iOS app version easily.</p>
+</blockquote>
+
+<h3>
+<a id="eureka-httpsgithubcomxmartlabseureka" class="anchor" href="#eureka-httpsgithubcomxmartlabseureka" aria-hidden="true"><span class="octicon octicon-link"></span></a>Eureka: <a href="https://github.com/xmartlabs/Eureka">https://github.com/xmartlabs/Eureka</a>
+</h3>
+
+<blockquote>
+<p>Elegant iOS form builder in Swift 2</p>
+</blockquote>
+
+<p><img src="https://github.com/xmartlabs/Eureka/raw/master/Eureka.png" alt="Eureka logo"></p>
+
+<h3>
+<a id="former-httpsgithubcomra1028former" class="anchor" href="#former-httpsgithubcomra1028former" aria-hidden="true"><span class="octicon octicon-link"></span></a>Former: <a href="https://github.com/ra1028/Former">https://github.com/ra1028/Former</a>
+</h3>
+
+<blockquote>
+<p>Former is a fully customizable Swift2 library for easy creating UITableView based form.</p>
+</blockquote>
+
+<p><img src="https://raw.githubusercontent.com/ra1028/Former/master/Logo.png" alt="Former logo"></p>
+
+<h3>
+<a id="swiftyuserdefaults-20-httpsgithubcomradexswiftyuserdefaults" class="anchor" href="#swiftyuserdefaults-20-httpsgithubcomradexswiftyuserdefaults" aria-hidden="true"><span class="octicon octicon-link"></span></a>SwiftyUserDefaults 2.0: <a href="https://github.com/radex/SwiftyUserDefaults">https://github.com/radex/SwiftyUserDefaults</a>
+</h3>
+
+<blockquote>
+<p>Statically-typed NSUserDefaults <a href="http://radex.io/swift/nsuserdefaults/static">http://radex.io/swift/nsuserdefaults/static</a></p>
+</blockquote>
+
+<h3>
+<a id="swiftkeychainwrapper-httpsgithubcomjrendelswiftkeychainwrapper" class="anchor" href="#swiftkeychainwrapper-httpsgithubcomjrendelswiftkeychainwrapper" aria-hidden="true"><span class="octicon octicon-link"></span></a>SwiftKeychainWrapper: <a href="https://github.com/jrendel/SwiftKeychainWrapper">https://github.com/jrendel/SwiftKeychainWrapper</a>
+</h3>
+
+<blockquote>
+<p>A simple static wrapper for the iOS Keychain to allow you to use it in a similar fashion to user defaults. Written in Swift.</p>
+</blockquote>
+
+<h3>
+<a id="cryptoswift-httpsgithubcomkrzyzanowskimcryptoswift" class="anchor" href="#cryptoswift-httpsgithubcomkrzyzanowskimcryptoswift" aria-hidden="true"><span class="octicon octicon-link"></span></a>CryptoSwift: <a href="https://github.com/krzyzanowskim/CryptoSwift">https://github.com/krzyzanowskim/CryptoSwift</a>
+</h3>
+
+<blockquote>
+<p>Crypto related functions and helpers for Swift implemented in Swift programming language <a href="http://krzyzanowskim.com">http://krzyzanowskim.com</a></p>
+</blockquote>
+
+<h3>
+<a id="prephirences-httpsgithubcomphimageprephirences" class="anchor" href="#prephirences-httpsgithubcomphimageprephirences" aria-hidden="true"><span class="octicon octicon-link"></span></a>Prephirences: <a href="https://github.com/phimage/Prephirences">https://github.com/phimage/Prephirences</a>
+</h3>
+
+<blockquote>
+<p>Prephirences is a Swift library that provides useful protocols and convenient methods to manage application preferences, configurations and app-state.</p>
+</blockquote>
+
+<p><img src="https://raw.githubusercontent.com/phimage/Prephirences/master/logo.png" alt="Prephirences logo"></p>
+
+<h3>
+<a id="cryptoprephirences-httpsgithubcomphimagecryptoprephirences" class="anchor" href="#cryptoprephirences-httpsgithubcomphimagecryptoprephirences" aria-hidden="true"><span class="octicon octicon-link"></span></a>CryptoPrephirences: <a href="https://github.com/phimage/CryptoPrephirences">https://github.com/phimage/CryptoPrephirences</a>
+</h3>
+
+<blockquote>
+<p>Add some encryption to your sensitive preferences</p>
+</blockquote>
+
+<h3>
+<a id="validator-httpsgithubcomadamwaitevalidator" class="anchor" href="#validator-httpsgithubcomadamwaitevalidator" aria-hidden="true"><span class="octicon octicon-link"></span></a>Validator: <a href="https://github.com/adamwaite/Validator">https://github.com/adamwaite/Validator</a>
+</h3>
+
+<blockquote>
+<p>Drop in user input validation for your iOS apps.</p>
+</blockquote>
+
+<h2>
+<a id="relevant-tools" class="anchor" href="#relevant-tools" aria-hidden="true"><span class="octicon octicon-link"></span></a>Relevant tools</h2>
+
+<h3>
+<a id="swiftgen-httpsgithubcomalisoftwareswiftgen" class="anchor" href="#swiftgen-httpsgithubcomalisoftwareswiftgen" aria-hidden="true"><span class="octicon octicon-link"></span></a>SwiftGen: <a href="https://github.com/AliSoftware/SwiftGen">https://github.com/AliSoftware/SwiftGen</a>
+</h3>
+
+<blockquote>
+<p>A collection of Swift tools to generate Swift code (enums for your assets, storyboards, Localizable.strings, ...)</p>
+</blockquote>
+
+<h3>
+<a id="xcres-httpsgithubcommrackwitzxcres" class="anchor" href="#xcres-httpsgithubcommrackwitzxcres" aria-hidden="true"><span class="octicon octicon-link"></span></a>xcres: <a href="https://github.com/mrackwitz/xcres">https://github.com/mrackwitz/xcres</a>
+</h3>
+
+<blockquote>
+<p>xcres searches your Xcode project for resources</p>
+</blockquote>
+
+<p><img src="https://github.com/mrackwitz/xcres/raw/assets/xcres_banner.png?raw=true" alt="xcres logo"></p>
+
+<h3>
+<a id="boa-httpsgithubcomteam-superchargeboa" class="anchor" href="#boa-httpsgithubcomteam-superchargeboa" aria-hidden="true"><span class="octicon octicon-link"></span></a>Boa: <a href="https://github.com/team-supercharge/boa">https://github.com/team-supercharge/boa</a>
+</h3>
+
+<blockquote>
+<p>Boa is a simple Ruby gem to generate VIPER projects and modules</p>
+</blockquote>
+
+<h3>
+<a id="viper-module-generator-httpsgithubcomteamboxviper-module-generator" class="anchor" href="#viper-module-generator-httpsgithubcomteamboxviper-module-generator" aria-hidden="true"><span class="octicon octicon-link"></span></a>Viper Module Generator: <a href="https://github.com/teambox/viper-module-generator">https://github.com/teambox/viper-module-generator</a>
+</h3>
+
+<blockquote>
+<p>Gem to generate VIPER modules to use them in your Objective-C/Swift projects</p>
+</blockquote>
+
+<h3>
+<a id="cocoapods-clean-httpsgithubcombendingspoonscocoapods-clean" class="anchor" href="#cocoapods-clean-httpsgithubcombendingspoonscocoapods-clean" aria-hidden="true"><span class="octicon octicon-link"></span></a>cocoapods-clean: <a href="https://github.com/BendingSpoons/cocoapods-clean">https://github.com/BendingSpoons/cocoapods-clean</a>
+</h3>
+
+<blockquote>
+<p>cocoapods plugin. Remove Podfile.lock, Pods/ and *.xcworkspace.</p>
+</blockquote>
+
+<h3>
+<a id="viewmonitor-httpsgithubcomdaisuke0131viewmonitor" class="anchor" href="#viewmonitor-httpsgithubcomdaisuke0131viewmonitor" aria-hidden="true"><span class="octicon octicon-link"></span></a>ViewMonitor: <a href="https://github.com/daisuke0131/ViewMonitor">https://github.com/daisuke0131/ViewMonitor</a>
+</h3>
+
+<blockquote>
+<p>ViewMonitor can measure view positions with accuracy.</p>
+</blockquote>
+
+<p><img src="https://raw.githubusercontent.com/daisuke0131/ViewMonitor/master/assets/viewmonitor.png" alt="ViewMonitor logo"></p>
+
+<h2>
+<a id="relevant-resources" class="anchor" href="#relevant-resources" aria-hidden="true"><span class="octicon octicon-link"></span></a>Relevant resources</h2>
+
+<h3>
+<a id="design-patterns-implemented-in-swift-2-httpsgithubcomochococodesign-patterns-in-swift" class="anchor" href="#design-patterns-implemented-in-swift-2-httpsgithubcomochococodesign-patterns-in-swift" aria-hidden="true"><span class="octicon octicon-link"></span></a>Design Patterns implemented in Swift 2: <a href="https://github.com/ochococo/Design-Patterns-In-Swift">https://github.com/ochococo/Design-Patterns-In-Swift</a>
+</h3>
+
+<blockquote>
+<p>Design Patterns implemented in Swift</p>
+</blockquote>
+
+<h3>
+<a id="swift-toolbox-httpwwwswifttoolboxio" class="anchor" href="#swift-toolbox-httpwwwswifttoolboxio" aria-hidden="true"><span class="octicon octicon-link"></span></a>Swift Toolbox: <a href="http://www.swifttoolbox.io/">http://www.swifttoolbox.io/</a>
+</h3>
+
+<blockquote>
+<p>Swift toolbox is a community-supported catalog 
+of iOS and OSX libraries written in the 
+Swift Programming Language.</p>
+</blockquote>
+
+<p><img src="http://www.swifttoolbox.io/assets/swiftcastToolboxLogo-2c3da670c8b08578e92f2d265eadaf63.png" alt="Swift Toolbox logo"></p>
+
+<h3>
+<a id="cocoacontrols-httpswwwcocoacontrolscom" class="anchor" href="#cocoacontrols-httpswwwcocoacontrolscom" aria-hidden="true"><span class="octicon octicon-link"></span></a>cocoacontrols: <a href="https://www.cocoacontrols.com/">https://www.cocoacontrols.com/</a>
+</h3>
+
+<p><img src="https://www.cocoacontrols.com/assets/logo@2x-1b08dd117f43ea835e9af45533fd6e75.png" alt="cocoacontrols logo"></p>
+
+<h3>
+<a id="ios-cookies-httpwwwioscookiescom" class="anchor" href="#ios-cookies-httpwwwioscookiescom" aria-hidden="true"><span class="octicon octicon-link"></span></a>iOS Cookies: <a href="http://www.ioscookies.com/">http://www.ioscookies.com/</a>
+</h3>
+
+<blockquote>
+<p>A hand curated collection of iOS libraries written in Swift</p>
+</blockquote>
+
+<p><img src="http://www.ioscookies.com/user/themes/ioscookies/images/header-logo.png" alt="iOS Cookies logo"></p>
+
+<h3>
+<a id="awesome-swift-httpsgithubcomwolgawesome-swift" class="anchor" href="#awesome-swift-httpsgithubcomwolgawesome-swift" aria-hidden="true"><span class="octicon octicon-link"></span></a>awesome-swift: <a href="https://github.com/Wolg/awesome-swift">https://github.com/Wolg/awesome-swift</a>
+</h3>
+
+<blockquote>
+<p>A curated list of awesome Swift frameworks, libraries and software.</p>
+</blockquote>
+
+<h3>
+<a id="awesome-swift-httpsgithubcommatteocrippaawesome-swift" class="anchor" href="#awesome-swift-httpsgithubcommatteocrippaawesome-swift" aria-hidden="true"><span class="octicon octicon-link"></span></a>awesome-swift: <a href="https://github.com/matteocrippa/awesome-swift">https://github.com/matteocrippa/awesome-swift</a>
+</h3>
+
+<blockquote>
+<p>A collaborative list of awesome swift resources. Feel free to contribute!</p>
+</blockquote>
+
+<h3>
+<a id="codepath-ios-guides-httpguidescodepathcomios" class="anchor" href="#codepath-ios-guides-httpguidescodepathcomios" aria-hidden="true"><span class="octicon octicon-link"></span></a>CodePath iOS Guides: <a href="http://guides.codepath.com/ios">http://guides.codepath.com/ios</a>
+</h3>
+
+<p><img src="http://guides.codepath.com/images/logos/codepath.svg?1448940932" alt="CodePath logo"></p>
+
+<h3>
+<a id="ios-good-practices-httpsgithubcomfuturiceios-good-practices" class="anchor" href="#ios-good-practices-httpsgithubcomfuturiceios-good-practices" aria-hidden="true"><span class="octicon octicon-link"></span></a>iOS Good Practices: <a href="https://github.com/futurice/ios-good-practices">https://github.com/futurice/ios-good-practices</a>
+</h3>
+
+<blockquote>
+<p>Good ideas for iOS development, by Futurice developers. <a href="http://www.futurice.com">http://www.futurice.com</a></p>
+</blockquote>
+
+<p><img src="http://static.flockler.com/assets/futurice/images/futurice-logo--green.svg" alt="futurice logo"></p>
+
+<h3>
+<a id="clean-swift-httpclean-swiftcom" class="anchor" href="#clean-swift-httpclean-swiftcom" aria-hidden="true"><span class="octicon octicon-link"></span></a>Clean Swift: <a href="http://clean-swift.com/">http://clean-swift.com/</a>
+</h3>
+
+<h3>
+<a id="awesome-swift-education-httpsgithubcomhsavit1awesome-swift-education" class="anchor" href="#awesome-swift-education-httpsgithubcomhsavit1awesome-swift-education" aria-hidden="true"><span class="octicon octicon-link"></span></a>Awesome-Swift-Education: <a href="https://github.com/hsavit1/Awesome-Swift-Education">https://github.com/hsavit1/Awesome-Swift-Education</a>
+</h3>
+
+<blockquote>
+<p>All the resources for Learning About Swift</p>
+</blockquote>
+
+<h3>
+<a id="awesome-apple-httpsgithubcomjoeljfischerawesome-apple" class="anchor" href="#awesome-apple-httpsgithubcomjoeljfischerawesome-apple" aria-hidden="true"><span class="octicon octicon-link"></span></a>Awesome-Apple: <a href="https://github.com/joeljfischer/awesome-apple">https://github.com/joeljfischer/awesome-apple</a>
+</h3>
+
+<blockquote>
+<p>An opinionated, curated list of awesome libraries, plugins, and resources for Apple platform development</p>
+</blockquote>
+
+<h3>
+<a id="the-official-raywenderlichcom-swift-style-guide-httpsgithubcomraywenderlichswift-style-guide" class="anchor" href="#the-official-raywenderlichcom-swift-style-guide-httpsgithubcomraywenderlichswift-style-guide" aria-hidden="true"><span class="octicon octicon-link"></span></a>The Official raywenderlich.com Swift Style Guide: <a href="https://github.com/raywenderlich/swift-style-guide">https://github.com/raywenderlich/swift-style-guide</a>
+</h3>
+
+<blockquote>
+<p>The official Swift style guide for raywenderlich.com.</p>
+</blockquote>
+
+<h3>
+<a id="ios-architecture-httpsgithubcomonmyway133ios-architecture" class="anchor" href="#ios-architecture-httpsgithubcomonmyway133ios-architecture" aria-hidden="true"><span class="octicon octicon-link"></span></a>ios-architecture: <a href="https://github.com/onmyway133/ios-architecture">https://github.com/onmyway133/ios-architecture</a>
+</h3>
+
+<blockquote>
+<p>Better ways to structure apps</p>
+</blockquote>
+
+<h2>
+<a id="bibliography" class="anchor" href="#bibliography" aria-hidden="true"><span class="octicon octicon-link"></span></a>Bibliography</h2>
+
+<ul>
+<li>ActiveRecord pattern:
+
+<ul>
+<li><a href="http://www.martinfowler.com/eaaCatalog/activeRecord.html">http://www.martinfowler.com/eaaCatalog/activeRecord.html</a></li>
+</ul>
+</li>
+<li>DAO Pattern:
+
+<ul>
+<li><a href="http://www.oracle.com/technetwork/java/dataaccessobject-138824.html">http://www.oracle.com/technetwork/java/dataaccessobject-138824.html</a></li>
+</ul>
+</li>
+<li>DTO Pattern:
+
+<ul>
+<li><a href="http://martinfowler.com/eaaCatalog/dataTransferObject.html">http://martinfowler.com/eaaCatalog/dataTransferObject.html</a></li>
+</ul>
+</li>
+<li>Singleton in Swift:
+
+<ul>
+<li><a href="http://krakendev.io/blog/the-right-way-to-write-a-singleton">http://krakendev.io/blog/the-right-way-to-write-a-singleton</a></li>
+</ul>
+</li>
+<li>Swift extensions:
+
+<ul>
+<li><a href="http://www.iphonelife.com/blog/31369/swift-programming-101-power-extensions">http://www.iphonelife.com/blog/31369/swift-programming-101-power-extensions</a></li>
+<li><a href="http://books.aidanf.net/learn-swift/extensions">http://books.aidanf.net/learn-swift/extensions</a></li>
+</ul>
+</li>
+<li>Testing
+
+<ul>
+<li><a href="https://medium.com/@MarcioK/how-you-can-test-view-controllers-with-quick-nimble-328f895b55ee#.nbzec17q4">https://medium.com/@MarcioK/how-you-can-test-view-controllers-with-quick-nimble-328f895b55ee#.nbzec17q4</a></li>
+<li><a href="http://natashatherobot.com/unit-testing-in-swift-a-quick-look-at-quick/">http://natashatherobot.com/unit-testing-in-swift-a-quick-look-at-quick/</a></li>
+</ul>
+</li>
+<li>VIPER architecture
+
+<ul>
+<li><a href="https://mutualmobile.github.io/blog/2013/12/04/viper-introduction/">https://mutualmobile.github.io/blog/2013/12/04/viper-introduction/</a></li>
+<li><a href="https://www.objc.io/issues/13-architecture/viper/">https://www.objc.io/issues/13-architecture/viper/</a></li>
+<li><a href="https://github.com/mutualmobile/VIPER-SWIFT">https://github.com/mutualmobile/VIPER-SWIFT</a></li>
+<li><a href="http://ppinera.es/2014/11/16/viper-looking-for-the-perfect-architecture.html">http://ppinera.es/2014/11/16/viper-looking-for-the-perfect-architecture.html</a></li>
+<li>Automatic VIPER modules generation: <a href="https://medium.com/@Supercharge/generating-viper-modules-with-boa-e8d9f090966b#.egnqwjp07">https://medium.com/@Supercharge/generating-viper-modules-with-boa-e8d9f090966b#.egnqwjp07</a>
+</li>
+</ul>
+</li>
+</ul>
+
+<h2>
+<a id="bonus" class="anchor" href="#bonus" aria-hidden="true"><span class="octicon octicon-link"></span></a>Bonus</h2>
+
+<ul>
+<li>iOS Unit Testing: Dependency Injection with Structs in Swift
+
+<ul>
+<li><a href="http://natashatherobot.com/ios-unit-testing-dependency-injection-with-structs-in-swift/">http://natashatherobot.com/ios-unit-testing-dependency-injection-with-structs-in-swift/</a></li>
+</ul>
+</li>
+</ul>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">iOSSwiftStarter maintained by <a href="https://github.com/RoRoche">RoRoche</a></p>
+        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
