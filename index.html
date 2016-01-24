@@ -32,9 +32,9 @@
     <div id="main_content_wrap" class="outer">
       <section id="main_content" class="inner">
         <h1>
-<a id="little-stories-about-an-ios-application-architecture-in-swift" class="anchor" href="#little-stories-about-an-ios-application-architecture-in-swift" aria-hidden="true"><span class="octicon octicon-link"></span></a>Little stories about an iOS application architecture in Swift</h1>
+<a id="little-stories-about-an-ios-application-architecture-in-swift" class="anchor" href="#little-stories-about-an-ios-application-architecture-in-swift" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Little stories about an iOS application architecture in Swift</h1>
 
-<p><img src="https://swift.org/assets/images/swift.svg" alt="Swift logo"></p>
+<p><img src="https://raw.githubusercontent.com/RoRoche/iOSSwiftStarter/master/assets/logo_swift.png" alt="Swift logo"></p>
 
 <p>By writing this paper, my goal is to describe how I came up with the iOS app architecture I suggest.
 It's a step by step writing to follow the reasons bringing me to set up the different components I chose.</p>
@@ -54,11 +54,11 @@ Although it's simple, it gathers some classical jobs when writing an application
 <hr>
 
 <h2>
-<a id="dependency-management" class="anchor" href="#dependency-management" aria-hidden="true"><span class="octicon octicon-link"></span></a>Dependency management</h2>
+<a id="dependency-management" class="anchor" href="#dependency-management" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Dependency management</h2>
 
 <p>To manage the dependencies to various tools and libraries our project will rely on, I chose to use <a href="https://cocoapods.org/">CocoaPods</a> .</p>
 
-<p><img src="http://cdn1.raywenderlich.com/wp-content/uploads/2015/02/cocoapods_logo.png" alt="CocoaPods logo"></p>
+<p><img src="https://raw.githubusercontent.com/RoRoche/iOSSwiftStarter/master/assets/logo_cocoapods.png" alt="CocoaPods logo"></p>
 
 <p>First of all, I had to install it via:</p>
 
@@ -95,14 +95,14 @@ end
 </code></pre>
 
 <h2>
-<a id="consuming-rest-api" class="anchor" href="#consuming-rest-api" aria-hidden="true"><span class="octicon octicon-link"></span></a>Consuming REST API</h2>
+<a id="consuming-rest-api" class="anchor" href="#consuming-rest-api" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Consuming REST API</h2>
 
 <h3>
-<a id="rest-client" class="anchor" href="#rest-client" aria-hidden="true"><span class="octicon octicon-link"></span></a>REST Client</h3>
+<a id="rest-client" class="anchor" href="#rest-client" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>REST Client</h3>
 
 <p>To achieve HTTP networking in Swift, I chose to use the famous libraries all around the ecosystem: <a href="https://github.com/Alamofire/Alamofire">Alamofire</a>.</p>
 
-<p><img src="https://raw.githubusercontent.com/Alamofire/Alamofire/assets/alamofire.png" alt="Alamofire logo"></p>
+<p><img src="https://raw.githubusercontent.com/RoRoche/iOSSwiftStarter/master/assets/logo_alamofire.png" alt="Alamofire logo"></p>
 
 <p>Alamofire</p>
 
@@ -203,7 +203,7 @@ This enum must extend the <code>URLRequestConvertible</code> protocol.</p>
 Here is the moment to talk about how to parse data (JSON content in this case).</p>
 
 <h3>
-<a id="parsing-data" class="anchor" href="#parsing-data" aria-hidden="true"><span class="octicon octicon-link"></span></a>Parsing data</h3>
+<a id="parsing-data" class="anchor" href="#parsing-data" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Parsing data</h3>
 
 <p>To parse JSON data, I chose to use <a href="https://github.com/Hearst-DD/ObjectMapper">ObjectMapper</a>.
 It's a well-known library in the Swift ecosystem.</p>
@@ -302,7 +302,7 @@ It just contains the implementation of the <code>mapping(map: Map)</code> functi
 <p>N.B.: An extension is provided (<a href="https://github.com/tristanhimmelman/AlamofireObjectMapper">AlamofireObjectMapper</a>) to use ObjectMapper to convert Alamofire responses.</p>
 
 <h2>
-<a id="managing-jobs" class="anchor" href="#managing-jobs" aria-hidden="true"><span class="octicon octicon-link"></span></a>Managing jobs</h2>
+<a id="managing-jobs" class="anchor" href="#managing-jobs" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Managing jobs</h2>
 
 <p>Here we have the requests to a remote API and its parsing working. We could want to add an abstraction layer to isolate these two specific jobs in a single class.</p>
 
@@ -395,7 +395,7 @@ task<span class="pl-k">.</span>success { (value: <span class="pl-c1">Array</span
 <p>The conclusion is: we can handle success/failure at task level (for a generic purpose for example) and in the starter component (for specific jobs ; in a view controller for example).</p>
 
 <h2>
-<a id="communication-between-components-with-passing-data" class="anchor" href="#communication-between-components-with-passing-data" aria-hidden="true"><span class="octicon octicon-link"></span></a>Communication between components with passing data</h2>
+<a id="communication-between-components-with-passing-data" class="anchor" href="#communication-between-components-with-passing-data" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Communication between components with passing data</h2>
 
 <p>A typical example of a generic purpose that could be achieved in success/failure callbacks at task level is to fire a <code>NSNotification</code> to notify other components that the task is complete.</p>
 
@@ -403,7 +403,7 @@ task<span class="pl-k">.</span>success { (value: <span class="pl-c1">Array</span
 
 <p>Personally, I have been using it for many years now. Nevertheless, I'd like to have a more fluent syntax to set up my notifications and their observer(s). To solve this point, I found the following library: <a href="https://github.com/TakeScoop/Kugel">Kugel</a>.</p>
 
-<p><img src="https://camo.githubusercontent.com/39e379c16678549a49c611f1ad6304109bf25af6/68747470733a2f2f7777772e64726f70626f782e636f6d2f732f3237666a6733766a756764333066772f6b7567656c5f6c6f676f2e706e673f7261773d31" alt="Kugel logo"></p>
+<p><img src="https://raw.githubusercontent.com/RoRoche/iOSSwiftStarter/master/assets/logo_kugel.png" alt="Kugel logo"></p>
 
 <p>Just what I need: </p>
 
@@ -518,7 +518,7 @@ task<span class="pl-k">.</span>success { (value: <span class="pl-c1">Array</span
 <p>After that, a component can be notified and can handle data passing through the notification (and don't forget to unregister itself in the <code>deinit</code> method).</p>
 
 <h2>
-<a id="data-persistence" class="anchor" href="#data-persistence" aria-hidden="true"><span class="octicon octicon-link"></span></a>Data persistence</h2>
+<a id="data-persistence" class="anchor" href="#data-persistence" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Data persistence</h2>
 
 <p>The entry point of the local storage is to use the built-in tool provided by Apple: <a href="https://developer.apple.com/library/tvos/documentation/Cocoa/Conceptual/CoreData/index.html">CoreData</a>.</p>
 
@@ -527,9 +527,9 @@ task<span class="pl-k">.</span>success { (value: <span class="pl-c1">Array</span
 <p>Nevertheless, developers can expect another layer of abstraction in order to provide a fluent API and clear method calls to simplify daily work and delete boilerplate code.</p>
 
 <h4>
-<a id="final-choice-corestore" class="anchor" href="#final-choice-corestore" aria-hidden="true"><span class="octicon octicon-link"></span></a>Final choice: CoreStore</h4>
+<a id="final-choice-corestore" class="anchor" href="#final-choice-corestore" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Final choice: CoreStore</h4>
 
-<p>Various libraries exist to provide a nice solution to my previously mentioned problem :</p>
+<p>Various libraries exist to provide a nice solution to my previously mentioned problem:</p>
 
 <ul>
 <li><a href="https://github.com/kaneshin/ActiveRecord">ActiveRecord</a></li>
@@ -593,7 +593,7 @@ task<span class="pl-k">.</span>success { (value: <span class="pl-c1">Array</span
 }</pre></div>
 
 <h2>
-<a id="make-thinner-view-controllers" class="anchor" href="#make-thinner-view-controllers" aria-hidden="true"><span class="octicon octicon-link"></span></a>Make thinner view controllers</h2>
+<a id="make-thinner-view-controllers" class="anchor" href="#make-thinner-view-controllers" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Make thinner view controllers</h2>
 
 <p>One of the most common issues in iOS development is a view controller becoming more and more massive.
 Especially, when using a <code>UITableView</code>, the view controller inflates hugely (considering <em>dataSource</em> and <em>delegate</em> methods).</p>
@@ -685,7 +685,7 @@ We just define an outlet for our table view. To populate it, we simply define, f
 <p>Target met: our view controller is definitely thinner!</p>
 
 <h2>
-<a id="the-viper-architecture" class="anchor" href="#the-viper-architecture" aria-hidden="true"><span class="octicon octicon-link"></span></a>The VIPER architecture</h2>
+<a id="the-viper-architecture" class="anchor" href="#the-viper-architecture" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>The VIPER architecture</h2>
 
 <p>Key concepts to grasp in this section are the following:</p>
 
@@ -710,13 +710,13 @@ We just define an outlet for our table view. To populate it, we simply define, f
 <p>This section is mainly based on the following article [<a href="https://www.objc.io/issues/13-architecture/viper/">https://www.objc.io/issues/13-architecture/viper/</a>].</p>
 
 <h3>
-<a id="but-what-is-viper" class="anchor" href="#but-what-is-viper" aria-hidden="true"><span class="octicon octicon-link"></span></a>But what is VIPER?</h3>
+<a id="but-what-is-viper" class="anchor" href="#but-what-is-viper" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>But what is VIPER?</h3>
 
 <blockquote>
 <p>VIPER is an application of <a href="https://blog.8thlight.com/uncle-bob/2012/08/13/the-clean-architecture.html">Clean Architecture</a> to iOS apps. The word VIPER is a backronym for View, Interactor, Presenter, Entity, and Routing.</p>
 </blockquote>
 
-<p><img src="https://www.objc.io/images/issue-13/2014-06-07-viper-intro-0a53d9f8.jpg" alt="VIPER illustration"></p>
+<p><img src="https://raw.githubusercontent.com/RoRoche/iOSSwiftStarter/master/assets/scheme_viper.jpg" alt="VIPER scheme"></p>
 
 <p>The first assessments we could establish after looking at Apple’s ViewController design are the following:</p>
 
@@ -869,11 +869,11 @@ It's pretty much the same as the "Viper Module Generator" (<a href="https://gith
 <p>Following POP guidelines, we'll be able to test such piece of code easily by mocking function and providing results.</p>
 
 <h2>
-<a id="unit-testing" class="anchor" href="#unit-testing" aria-hidden="true"><span class="octicon octicon-link"></span></a>Unit testing</h2>
+<a id="unit-testing" class="anchor" href="#unit-testing" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Unit testing</h2>
 
 <p>Let's talk about testing now. Here I introduced two coupled libraries: <a href="https://github.com/Quick/Nimble">Nimble</a> (for fluent assertions API) and <a href="https://github.com/Quick/Quick">Quick</a> (to write tests in a BDD way).</p>
 
-<p><img src="https://camo.githubusercontent.com/bcd71a03c67bd89a4cfc390c7c22cc4f06db91b1/687474703a2f2f662e636c2e6c792f6974656d732f30723145313932433152306232673251336832772f517569636b4c6f676f5f436f6c6f722e706e67" alt="Quick logo"></p>
+<p><img src="https://raw.githubusercontent.com/RoRoche/iOSSwiftStarter/master/assets/logo_quick.png" alt="Quick logo"></p>
 
 <p>I'll present them through a concrete test case of the <code>ListRepoModuleInteractor</code> class.</p>
 
@@ -1056,26 +1056,26 @@ Then, we have to override the <code>spec()</code> function so that our tests are
 </blockquote>
 
 <h2>
-<a id="conclusion" class="anchor" href="#conclusion" aria-hidden="true"><span class="octicon octicon-link"></span></a>Conclusion</h2>
+<a id="conclusion" class="anchor" href="#conclusion" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Conclusion</h2>
 
 <p>All these tools/libraries combined together lead us to a clear, clean, reliable and testable project template where we can add and maintain features (i.e. modules) easily, in a very intelligible way. 
 What we've got is a robust arsenal of components that are interchangeable if needed.</p>
 
 <h2>
-<a id="relevant-libraries" class="anchor" href="#relevant-libraries" aria-hidden="true"><span class="octicon octicon-link"></span></a>Relevant libraries</h2>
+<a id="relevant-libraries" class="anchor" href="#relevant-libraries" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Relevant libraries</h2>
 
 <h3>
-<a id="kingfisher-httpsgithubcomonevcatkingfisher" class="anchor" href="#kingfisher-httpsgithubcomonevcatkingfisher" aria-hidden="true"><span class="octicon octicon-link"></span></a>Kingfisher: <a href="https://github.com/onevcat/Kingfisher">https://github.com/onevcat/Kingfisher</a>
+<a id="kingfisher-httpsgithubcomonevcatkingfisher" class="anchor" href="#kingfisher-httpsgithubcomonevcatkingfisher" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Kingfisher: <a href="https://github.com/onevcat/Kingfisher">https://github.com/onevcat/Kingfisher</a>
 </h3>
 
 <blockquote>
 <p>A lightweight and pure Swift implemented library for downloading and caching image from the web.</p>
 </blockquote>
 
-<p><img src="https://raw.githubusercontent.com/onevcat/Kingfisher/master/images/logo.png" alt="Kingfisher logo"></p>
+<p><img src="https://raw.githubusercontent.com/RoRoche/iOSSwiftStarter/master/assets/logo_kingfisher.png" alt="Kingfisher logo"></p>
 
 <h3>
-<a id="async-httpsgithubcomduemunkasync" class="anchor" href="#async-httpsgithubcomduemunkasync" aria-hidden="true"><span class="octicon octicon-link"></span></a>Async: <a href="https://github.com/duemunk/Async">https://github.com/duemunk/Async</a>
+<a id="async-httpsgithubcomduemunkasync" class="anchor" href="#async-httpsgithubcomduemunkasync" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Async: <a href="https://github.com/duemunk/Async">https://github.com/duemunk/Async</a>
 </h3>
 
 <blockquote>
@@ -1083,7 +1083,7 @@ What we've got is a robust arsenal of components that are interchangeable if nee
 </blockquote>
 
 <h3>
-<a id="dollarswift-httpsgithubcomankurpdollarswift" class="anchor" href="#dollarswift-httpsgithubcomankurpdollarswift" aria-hidden="true"><span class="octicon octicon-link"></span></a>Dollar.swift: <a href="https://github.com/ankurp/Dollar.swift">https://github.com/ankurp/Dollar.swift</a>
+<a id="dollarswift-httpsgithubcomankurpdollarswift" class="anchor" href="#dollarswift-httpsgithubcomankurpdollarswift" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Dollar.swift: <a href="https://github.com/ankurp/Dollar.swift">https://github.com/ankurp/Dollar.swift</a>
 </h3>
 
 <blockquote>
@@ -1091,7 +1091,7 @@ What we've got is a robust arsenal of components that are interchangeable if nee
 </blockquote>
 
 <h3>
-<a id="exswift-httpsgithubcompnreexswift" class="anchor" href="#exswift-httpsgithubcompnreexswift" aria-hidden="true"><span class="octicon octicon-link"></span></a>ExSwift: <a href="https://github.com/pNre/ExSwift">https://github.com/pNre/ExSwift</a>
+<a id="exswift-httpsgithubcompnreexswift" class="anchor" href="#exswift-httpsgithubcompnreexswift" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>ExSwift: <a href="https://github.com/pNre/ExSwift">https://github.com/pNre/ExSwift</a>
 </h3>
 
 <blockquote>
@@ -1099,17 +1099,17 @@ What we've got is a robust arsenal of components that are interchangeable if nee
 </blockquote>
 
 <h3>
-<a id="netfox-httpsgithubcomkasketisnetfox" class="anchor" href="#netfox-httpsgithubcomkasketisnetfox" aria-hidden="true"><span class="octicon octicon-link"></span></a>netfox: <a href="https://github.com/kasketis/netfox">https://github.com/kasketis/netfox</a>
+<a id="netfox-httpsgithubcomkasketisnetfox" class="anchor" href="#netfox-httpsgithubcomkasketisnetfox" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>netfox: <a href="https://github.com/kasketis/netfox">https://github.com/kasketis/netfox</a>
 </h3>
 
 <blockquote>
 <p>A lightweight, one line setup, iOS network debugging library!</p>
 </blockquote>
 
-<p><img src="https://raw.githubusercontent.com/kasketis/netfox/master/assets/netfox_logo.png" alt="netfox logo"></p>
+<p><img src="https://raw.githubusercontent.com/RoRoche/iOSSwiftStarter/master/assets/logo_netfox.png" alt="netfox logo"></p>
 
 <h3>
-<a id="qorumlogs-httpsgithubcomgoktugyilqorumlogs" class="anchor" href="#qorumlogs-httpsgithubcomgoktugyilqorumlogs" aria-hidden="true"><span class="octicon octicon-link"></span></a>QorumLogs: <a href="https://github.com/goktugyil/QorumLogs">https://github.com/goktugyil/QorumLogs</a>
+<a id="qorumlogs-httpsgithubcomgoktugyilqorumlogs" class="anchor" href="#qorumlogs-httpsgithubcomgoktugyilqorumlogs" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>QorumLogs: <a href="https://github.com/goktugyil/QorumLogs">https://github.com/goktugyil/QorumLogs</a>
 </h3>
 
 <blockquote>
@@ -1117,27 +1117,27 @@ What we've got is a robust arsenal of components that are interchangeable if nee
 </blockquote>
 
 <h3>
-<a id="snapkit-httpsgithubcomsnapkitsnapkit" class="anchor" href="#snapkit-httpsgithubcomsnapkitsnapkit" aria-hidden="true"><span class="octicon octicon-link"></span></a>SnapKit: <a href="https://github.com/SnapKit/SnapKit">https://github.com/SnapKit/SnapKit</a>
+<a id="snapkit-httpsgithubcomsnapkitsnapkit" class="anchor" href="#snapkit-httpsgithubcomsnapkitsnapkit" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>SnapKit: <a href="https://github.com/SnapKit/SnapKit">https://github.com/SnapKit/SnapKit</a>
 </h3>
 
 <blockquote>
 <p>A Swift Autolayout DSL for iOS &amp; OS X <a href="http://snapkit.io">http://snapkit.io</a></p>
 </blockquote>
 
-<p><img src="https://camo.githubusercontent.com/446acab40bc68602c8046deddbc60296906ce2d6/687474703a2f2f736e61706b69742e696f2f696d616765732f62616e6e65722e706e67" alt="SnapKit logo"></p>
+<p><img src="https://raw.githubusercontent.com/RoRoche/iOSSwiftStarter/master/assets/logo_snapkit.png" alt="SnapKit logo"></p>
 
 <h3>
-<a id="pkhud-httpsgithubcompkluzpkhud" class="anchor" href="#pkhud-httpsgithubcompkluzpkhud" aria-hidden="true"><span class="octicon octicon-link"></span></a>PKHUD: <a href="https://github.com/pkluz/PKHUD">https://github.com/pkluz/PKHUD</a>
+<a id="pkhud-httpsgithubcompkluzpkhud" class="anchor" href="#pkhud-httpsgithubcompkluzpkhud" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>PKHUD: <a href="https://github.com/pkluz/PKHUD">https://github.com/pkluz/PKHUD</a>
 </h3>
 
 <blockquote>
 <p>A Swift based reimplementation of the Apple HUD (Volume, Ringer, Rotation,…) for iOS 8.</p>
 </blockquote>
 
-<p><img src="https://raw.githubusercontent.com/pkluz/PKHUD/master/README_hero.png" alt="PKHUD logo"></p>
+<p><img src="https://raw.githubusercontent.com/RoRoche/iOSSwiftStarter/master/assets/logo_pkhud.png" alt="PKHUD logo"></p>
 
 <h3>
-<a id="statefulviewcontroller-httpsgithubcomaschuchstatefulviewcontroller" class="anchor" href="#statefulviewcontroller-httpsgithubcomaschuchstatefulviewcontroller" aria-hidden="true"><span class="octicon octicon-link"></span></a>StatefulViewController: <a href="https://github.com/aschuch/StatefulViewController">https://github.com/aschuch/StatefulViewController</a>
+<a id="statefulviewcontroller-httpsgithubcomaschuchstatefulviewcontroller" class="anchor" href="#statefulviewcontroller-httpsgithubcomaschuchstatefulviewcontroller" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>StatefulViewController: <a href="https://github.com/aschuch/StatefulViewController">https://github.com/aschuch/StatefulViewController</a>
 </h3>
 
 <blockquote>
@@ -1145,7 +1145,7 @@ What we've got is a robust arsenal of components that are interchangeable if nee
 </blockquote>
 
 <h3>
-<a id="uicolorhex-now-swift-httpsgithubcomyeahdongcnuicolor-hex-swift" class="anchor" href="#uicolorhex-now-swift-httpsgithubcomyeahdongcnuicolor-hex-swift" aria-hidden="true"><span class="octicon octicon-link"></span></a>UIColor+Hex, now Swift.: <a href="https://github.com/yeahdongcn/UIColor-Hex-Swift">https://github.com/yeahdongcn/UIColor-Hex-Swift</a>
+<a id="uicolorhex-now-swift-httpsgithubcomyeahdongcnuicolor-hex-swift" class="anchor" href="#uicolorhex-now-swift-httpsgithubcomyeahdongcnuicolor-hex-swift" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>UIColor+Hex, now Swift.: <a href="https://github.com/yeahdongcn/UIColor-Hex-Swift">https://github.com/yeahdongcn/UIColor-Hex-Swift</a>
 </h3>
 
 <blockquote>
@@ -1153,7 +1153,7 @@ What we've got is a robust arsenal of components that are interchangeable if nee
 </blockquote>
 
 <h3>
-<a id="appversionmonitor-httpsgithubcommuukiiappversionmonitor" class="anchor" href="#appversionmonitor-httpsgithubcommuukiiappversionmonitor" aria-hidden="true"><span class="octicon octicon-link"></span></a>AppVersionMonitor: <a href="https://github.com/muukii/AppVersionMonitor">https://github.com/muukii/AppVersionMonitor</a>
+<a id="appversionmonitor-httpsgithubcommuukiiappversionmonitor" class="anchor" href="#appversionmonitor-httpsgithubcommuukiiappversionmonitor" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>AppVersionMonitor: <a href="https://github.com/muukii/AppVersionMonitor">https://github.com/muukii/AppVersionMonitor</a>
 </h3>
 
 <blockquote>
@@ -1161,7 +1161,7 @@ What we've got is a robust arsenal of components that are interchangeable if nee
 </blockquote>
 
 <h3>
-<a id="keyboardobserver-httpsgithubcommorizotterkeyboardobserver" class="anchor" href="#keyboardobserver-httpsgithubcommorizotterkeyboardobserver" aria-hidden="true"><span class="octicon octicon-link"></span></a>KeyboardObserver: <a href="https://github.com/morizotter/KeyboardObserver">https://github.com/morizotter/KeyboardObserver</a>
+<a id="keyboardobserver-httpsgithubcommorizotterkeyboardobserver" class="anchor" href="#keyboardobserver-httpsgithubcommorizotterkeyboardobserver" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>KeyboardObserver: <a href="https://github.com/morizotter/KeyboardObserver">https://github.com/morizotter/KeyboardObserver</a>
 </h3>
 
 <blockquote>
@@ -1169,27 +1169,27 @@ What we've got is a robust arsenal of components that are interchangeable if nee
 </blockquote>
 
 <h3>
-<a id="eureka-httpsgithubcomxmartlabseureka" class="anchor" href="#eureka-httpsgithubcomxmartlabseureka" aria-hidden="true"><span class="octicon octicon-link"></span></a>Eureka: <a href="https://github.com/xmartlabs/Eureka">https://github.com/xmartlabs/Eureka</a>
+<a id="eureka-httpsgithubcomxmartlabseureka" class="anchor" href="#eureka-httpsgithubcomxmartlabseureka" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Eureka: <a href="https://github.com/xmartlabs/Eureka">https://github.com/xmartlabs/Eureka</a>
 </h3>
 
 <blockquote>
 <p>Elegant iOS form builder in Swift 2</p>
 </blockquote>
 
-<p><img src="https://github.com/xmartlabs/Eureka/raw/master/Eureka.png" alt="Eureka logo"></p>
+<p><img src="https://raw.githubusercontent.com/RoRoche/iOSSwiftStarter/master/assets/logo_eureka.png" alt="Eureka logo"></p>
 
 <h3>
-<a id="former-httpsgithubcomra1028former" class="anchor" href="#former-httpsgithubcomra1028former" aria-hidden="true"><span class="octicon octicon-link"></span></a>Former: <a href="https://github.com/ra1028/Former">https://github.com/ra1028/Former</a>
+<a id="former-httpsgithubcomra1028former" class="anchor" href="#former-httpsgithubcomra1028former" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Former: <a href="https://github.com/ra1028/Former">https://github.com/ra1028/Former</a>
 </h3>
 
 <blockquote>
 <p>Former is a fully customizable Swift2 library for easy creating UITableView based form.</p>
 </blockquote>
 
-<p><img src="https://raw.githubusercontent.com/ra1028/Former/master/Logo.png" alt="Former logo"></p>
+<p><img src="https://raw.githubusercontent.com/RoRoche/iOSSwiftStarter/master/assets/logo_former.png" alt="Former logo"></p>
 
 <h3>
-<a id="swiftyuserdefaults-20-httpsgithubcomradexswiftyuserdefaults" class="anchor" href="#swiftyuserdefaults-20-httpsgithubcomradexswiftyuserdefaults" aria-hidden="true"><span class="octicon octicon-link"></span></a>SwiftyUserDefaults 2.0: <a href="https://github.com/radex/SwiftyUserDefaults">https://github.com/radex/SwiftyUserDefaults</a>
+<a id="swiftyuserdefaults-20-httpsgithubcomradexswiftyuserdefaults" class="anchor" href="#swiftyuserdefaults-20-httpsgithubcomradexswiftyuserdefaults" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>SwiftyUserDefaults 2.0: <a href="https://github.com/radex/SwiftyUserDefaults">https://github.com/radex/SwiftyUserDefaults</a>
 </h3>
 
 <blockquote>
@@ -1197,7 +1197,7 @@ What we've got is a robust arsenal of components that are interchangeable if nee
 </blockquote>
 
 <h3>
-<a id="swiftkeychainwrapper-httpsgithubcomjrendelswiftkeychainwrapper" class="anchor" href="#swiftkeychainwrapper-httpsgithubcomjrendelswiftkeychainwrapper" aria-hidden="true"><span class="octicon octicon-link"></span></a>SwiftKeychainWrapper: <a href="https://github.com/jrendel/SwiftKeychainWrapper">https://github.com/jrendel/SwiftKeychainWrapper</a>
+<a id="swiftkeychainwrapper-httpsgithubcomjrendelswiftkeychainwrapper" class="anchor" href="#swiftkeychainwrapper-httpsgithubcomjrendelswiftkeychainwrapper" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>SwiftKeychainWrapper: <a href="https://github.com/jrendel/SwiftKeychainWrapper">https://github.com/jrendel/SwiftKeychainWrapper</a>
 </h3>
 
 <blockquote>
@@ -1205,7 +1205,7 @@ What we've got is a robust arsenal of components that are interchangeable if nee
 </blockquote>
 
 <h3>
-<a id="cryptoswift-httpsgithubcomkrzyzanowskimcryptoswift" class="anchor" href="#cryptoswift-httpsgithubcomkrzyzanowskimcryptoswift" aria-hidden="true"><span class="octicon octicon-link"></span></a>CryptoSwift: <a href="https://github.com/krzyzanowskim/CryptoSwift">https://github.com/krzyzanowskim/CryptoSwift</a>
+<a id="cryptoswift-httpsgithubcomkrzyzanowskimcryptoswift" class="anchor" href="#cryptoswift-httpsgithubcomkrzyzanowskimcryptoswift" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>CryptoSwift: <a href="https://github.com/krzyzanowskim/CryptoSwift">https://github.com/krzyzanowskim/CryptoSwift</a>
 </h3>
 
 <blockquote>
@@ -1213,17 +1213,17 @@ What we've got is a robust arsenal of components that are interchangeable if nee
 </blockquote>
 
 <h3>
-<a id="prephirences-httpsgithubcomphimageprephirences" class="anchor" href="#prephirences-httpsgithubcomphimageprephirences" aria-hidden="true"><span class="octicon octicon-link"></span></a>Prephirences: <a href="https://github.com/phimage/Prephirences">https://github.com/phimage/Prephirences</a>
+<a id="prephirences-httpsgithubcomphimageprephirences" class="anchor" href="#prephirences-httpsgithubcomphimageprephirences" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Prephirences: <a href="https://github.com/phimage/Prephirences">https://github.com/phimage/Prephirences</a>
 </h3>
 
 <blockquote>
 <p>Prephirences is a Swift library that provides useful protocols and convenient methods to manage application preferences, configurations and app-state.</p>
 </blockquote>
 
-<p><img src="https://raw.githubusercontent.com/phimage/Prephirences/master/logo.png" alt="Prephirences logo"></p>
+<p><img src="https://raw.githubusercontent.com/RoRoche/iOSSwiftStarter/master/assets/logo_prephirences.png" alt="Prephirences logo"></p>
 
 <h3>
-<a id="cryptoprephirences-httpsgithubcomphimagecryptoprephirences" class="anchor" href="#cryptoprephirences-httpsgithubcomphimagecryptoprephirences" aria-hidden="true"><span class="octicon octicon-link"></span></a>CryptoPrephirences: <a href="https://github.com/phimage/CryptoPrephirences">https://github.com/phimage/CryptoPrephirences</a>
+<a id="cryptoprephirences-httpsgithubcomphimagecryptoprephirences" class="anchor" href="#cryptoprephirences-httpsgithubcomphimagecryptoprephirences" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>CryptoPrephirences: <a href="https://github.com/phimage/CryptoPrephirences">https://github.com/phimage/CryptoPrephirences</a>
 </h3>
 
 <blockquote>
@@ -1231,7 +1231,7 @@ What we've got is a robust arsenal of components that are interchangeable if nee
 </blockquote>
 
 <h3>
-<a id="validator-httpsgithubcomadamwaitevalidator" class="anchor" href="#validator-httpsgithubcomadamwaitevalidator" aria-hidden="true"><span class="octicon octicon-link"></span></a>Validator: <a href="https://github.com/adamwaite/Validator">https://github.com/adamwaite/Validator</a>
+<a id="validator-httpsgithubcomadamwaitevalidator" class="anchor" href="#validator-httpsgithubcomadamwaitevalidator" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Validator: <a href="https://github.com/adamwaite/Validator">https://github.com/adamwaite/Validator</a>
 </h3>
 
 <blockquote>
@@ -1239,10 +1239,10 @@ What we've got is a robust arsenal of components that are interchangeable if nee
 </blockquote>
 
 <h2>
-<a id="relevant-tools" class="anchor" href="#relevant-tools" aria-hidden="true"><span class="octicon octicon-link"></span></a>Relevant tools</h2>
+<a id="relevant-tools" class="anchor" href="#relevant-tools" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Relevant tools</h2>
 
 <h3>
-<a id="swiftgen-httpsgithubcomalisoftwareswiftgen" class="anchor" href="#swiftgen-httpsgithubcomalisoftwareswiftgen" aria-hidden="true"><span class="octicon octicon-link"></span></a>SwiftGen: <a href="https://github.com/AliSoftware/SwiftGen">https://github.com/AliSoftware/SwiftGen</a>
+<a id="swiftgen-httpsgithubcomalisoftwareswiftgen" class="anchor" href="#swiftgen-httpsgithubcomalisoftwareswiftgen" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>SwiftGen: <a href="https://github.com/AliSoftware/SwiftGen">https://github.com/AliSoftware/SwiftGen</a>
 </h3>
 
 <blockquote>
@@ -1250,17 +1250,17 @@ What we've got is a robust arsenal of components that are interchangeable if nee
 </blockquote>
 
 <h3>
-<a id="xcres-httpsgithubcommrackwitzxcres" class="anchor" href="#xcres-httpsgithubcommrackwitzxcres" aria-hidden="true"><span class="octicon octicon-link"></span></a>xcres: <a href="https://github.com/mrackwitz/xcres">https://github.com/mrackwitz/xcres</a>
+<a id="xcres-httpsgithubcommrackwitzxcres" class="anchor" href="#xcres-httpsgithubcommrackwitzxcres" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>xcres: <a href="https://github.com/mrackwitz/xcres">https://github.com/mrackwitz/xcres</a>
 </h3>
 
 <blockquote>
 <p>xcres searches your Xcode project for resources</p>
 </blockquote>
 
-<p><img src="https://github.com/mrackwitz/xcres/raw/assets/xcres_banner.png?raw=true" alt="xcres logo"></p>
+<p><img src="https://raw.githubusercontent.com/RoRoche/iOSSwiftStarter/master/assets/logo_xcres.png" alt="xcres logo"></p>
 
 <h3>
-<a id="boa-httpsgithubcomteam-superchargeboa" class="anchor" href="#boa-httpsgithubcomteam-superchargeboa" aria-hidden="true"><span class="octicon octicon-link"></span></a>Boa: <a href="https://github.com/team-supercharge/boa">https://github.com/team-supercharge/boa</a>
+<a id="boa-httpsgithubcomteam-superchargeboa" class="anchor" href="#boa-httpsgithubcomteam-superchargeboa" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Boa: <a href="https://github.com/team-supercharge/boa">https://github.com/team-supercharge/boa</a>
 </h3>
 
 <blockquote>
@@ -1268,7 +1268,7 @@ What we've got is a robust arsenal of components that are interchangeable if nee
 </blockquote>
 
 <h3>
-<a id="viper-module-generator-httpsgithubcomteamboxviper-module-generator" class="anchor" href="#viper-module-generator-httpsgithubcomteamboxviper-module-generator" aria-hidden="true"><span class="octicon octicon-link"></span></a>Viper Module Generator: <a href="https://github.com/teambox/viper-module-generator">https://github.com/teambox/viper-module-generator</a>
+<a id="viper-module-generator-httpsgithubcomteamboxviper-module-generator" class="anchor" href="#viper-module-generator-httpsgithubcomteamboxviper-module-generator" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Viper Module Generator: <a href="https://github.com/teambox/viper-module-generator">https://github.com/teambox/viper-module-generator</a>
 </h3>
 
 <blockquote>
@@ -1276,7 +1276,7 @@ What we've got is a robust arsenal of components that are interchangeable if nee
 </blockquote>
 
 <h3>
-<a id="cocoapods-clean-httpsgithubcombendingspoonscocoapods-clean" class="anchor" href="#cocoapods-clean-httpsgithubcombendingspoonscocoapods-clean" aria-hidden="true"><span class="octicon octicon-link"></span></a>cocoapods-clean: <a href="https://github.com/BendingSpoons/cocoapods-clean">https://github.com/BendingSpoons/cocoapods-clean</a>
+<a id="cocoapods-clean-httpsgithubcombendingspoonscocoapods-clean" class="anchor" href="#cocoapods-clean-httpsgithubcombendingspoonscocoapods-clean" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>cocoapods-clean: <a href="https://github.com/BendingSpoons/cocoapods-clean">https://github.com/BendingSpoons/cocoapods-clean</a>
 </h3>
 
 <blockquote>
@@ -1284,20 +1284,20 @@ What we've got is a robust arsenal of components that are interchangeable if nee
 </blockquote>
 
 <h3>
-<a id="viewmonitor-httpsgithubcomdaisuke0131viewmonitor" class="anchor" href="#viewmonitor-httpsgithubcomdaisuke0131viewmonitor" aria-hidden="true"><span class="octicon octicon-link"></span></a>ViewMonitor: <a href="https://github.com/daisuke0131/ViewMonitor">https://github.com/daisuke0131/ViewMonitor</a>
+<a id="viewmonitor-httpsgithubcomdaisuke0131viewmonitor" class="anchor" href="#viewmonitor-httpsgithubcomdaisuke0131viewmonitor" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>ViewMonitor: <a href="https://github.com/daisuke0131/ViewMonitor">https://github.com/daisuke0131/ViewMonitor</a>
 </h3>
 
 <blockquote>
 <p>ViewMonitor can measure view positions with accuracy.</p>
 </blockquote>
 
-<p><img src="https://raw.githubusercontent.com/daisuke0131/ViewMonitor/master/assets/viewmonitor.png" alt="ViewMonitor logo"></p>
+<p><img src="https://raw.githubusercontent.com/RoRoche/iOSSwiftStarter/master/assets/logo_viewmonitor.png" alt="ViewMonitor logo"></p>
 
 <h2>
-<a id="relevant-resources" class="anchor" href="#relevant-resources" aria-hidden="true"><span class="octicon octicon-link"></span></a>Relevant resources</h2>
+<a id="relevant-resources" class="anchor" href="#relevant-resources" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Relevant resources</h2>
 
 <h3>
-<a id="design-patterns-implemented-in-swift-2-httpsgithubcomochococodesign-patterns-in-swift" class="anchor" href="#design-patterns-implemented-in-swift-2-httpsgithubcomochococodesign-patterns-in-swift" aria-hidden="true"><span class="octicon octicon-link"></span></a>Design Patterns implemented in Swift 2: <a href="https://github.com/ochococo/Design-Patterns-In-Swift">https://github.com/ochococo/Design-Patterns-In-Swift</a>
+<a id="design-patterns-implemented-in-swift-2-httpsgithubcomochococodesign-patterns-in-swift" class="anchor" href="#design-patterns-implemented-in-swift-2-httpsgithubcomochococodesign-patterns-in-swift" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Design Patterns implemented in Swift 2: <a href="https://github.com/ochococo/Design-Patterns-In-Swift">https://github.com/ochococo/Design-Patterns-In-Swift</a>
 </h3>
 
 <blockquote>
@@ -1305,7 +1305,7 @@ What we've got is a robust arsenal of components that are interchangeable if nee
 </blockquote>
 
 <h3>
-<a id="swift-toolbox-httpwwwswifttoolboxio" class="anchor" href="#swift-toolbox-httpwwwswifttoolboxio" aria-hidden="true"><span class="octicon octicon-link"></span></a>Swift Toolbox: <a href="http://www.swifttoolbox.io/">http://www.swifttoolbox.io/</a>
+<a id="swift-toolbox-httpwwwswifttoolboxio" class="anchor" href="#swift-toolbox-httpwwwswifttoolboxio" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Swift Toolbox: <a href="http://www.swifttoolbox.io/">http://www.swifttoolbox.io/</a>
 </h3>
 
 <blockquote>
@@ -1314,26 +1314,26 @@ of iOS and OSX libraries written in the
 Swift Programming Language.</p>
 </blockquote>
 
-<p><img src="http://www.swifttoolbox.io/assets/swiftcastToolboxLogo-2c3da670c8b08578e92f2d265eadaf63.png" alt="Swift Toolbox logo"></p>
+<p><img src="https://raw.githubusercontent.com/RoRoche/iOSSwiftStarter/master/assets/logo_swifttoolbox.png" alt="Swift Toolbox logo"></p>
 
 <h3>
-<a id="cocoacontrols-httpswwwcocoacontrolscom" class="anchor" href="#cocoacontrols-httpswwwcocoacontrolscom" aria-hidden="true"><span class="octicon octicon-link"></span></a>cocoacontrols: <a href="https://www.cocoacontrols.com/">https://www.cocoacontrols.com/</a>
+<a id="cocoacontrols-httpswwwcocoacontrolscom" class="anchor" href="#cocoacontrols-httpswwwcocoacontrolscom" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>cocoacontrols: <a href="https://www.cocoacontrols.com/">https://www.cocoacontrols.com/</a>
 </h3>
 
-<p><img src="https://www.cocoacontrols.com/assets/logo@2x-1b08dd117f43ea835e9af45533fd6e75.png" alt="cocoacontrols logo"></p>
+<p><img src="https://raw.githubusercontent.com/RoRoche/iOSSwiftStarter/master/assets/logo_cocoacontrols.png" alt="cocoacontrols logo"></p>
 
 <h3>
-<a id="ios-cookies-httpwwwioscookiescom" class="anchor" href="#ios-cookies-httpwwwioscookiescom" aria-hidden="true"><span class="octicon octicon-link"></span></a>iOS Cookies: <a href="http://www.ioscookies.com/">http://www.ioscookies.com/</a>
+<a id="ios-cookies-httpwwwioscookiescom" class="anchor" href="#ios-cookies-httpwwwioscookiescom" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>iOS Cookies: <a href="http://www.ioscookies.com/">http://www.ioscookies.com/</a>
 </h3>
 
 <blockquote>
 <p>A hand curated collection of iOS libraries written in Swift</p>
 </blockquote>
 
-<p><img src="http://www.ioscookies.com/user/themes/ioscookies/images/header-logo.png" alt="iOS Cookies logo"></p>
+<p><img src="https://raw.githubusercontent.com/RoRoche/iOSSwiftStarter/master/assets/logo_ioscookies.png" alt="iOS Cookies logo"></p>
 
 <h3>
-<a id="awesome-swift-httpsgithubcomwolgawesome-swift" class="anchor" href="#awesome-swift-httpsgithubcomwolgawesome-swift" aria-hidden="true"><span class="octicon octicon-link"></span></a>awesome-swift: <a href="https://github.com/Wolg/awesome-swift">https://github.com/Wolg/awesome-swift</a>
+<a id="awesome-swift-httpsgithubcomwolgawesome-swift" class="anchor" href="#awesome-swift-httpsgithubcomwolgawesome-swift" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>awesome-swift: <a href="https://github.com/Wolg/awesome-swift">https://github.com/Wolg/awesome-swift</a>
 </h3>
 
 <blockquote>
@@ -1341,7 +1341,7 @@ Swift Programming Language.</p>
 </blockquote>
 
 <h3>
-<a id="awesome-swift-httpsgithubcommatteocrippaawesome-swift" class="anchor" href="#awesome-swift-httpsgithubcommatteocrippaawesome-swift" aria-hidden="true"><span class="octicon octicon-link"></span></a>awesome-swift: <a href="https://github.com/matteocrippa/awesome-swift">https://github.com/matteocrippa/awesome-swift</a>
+<a id="awesome-swift-httpsgithubcommatteocrippaawesome-swift" class="anchor" href="#awesome-swift-httpsgithubcommatteocrippaawesome-swift" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>awesome-swift: <a href="https://github.com/matteocrippa/awesome-swift">https://github.com/matteocrippa/awesome-swift</a>
 </h3>
 
 <blockquote>
@@ -1349,27 +1349,27 @@ Swift Programming Language.</p>
 </blockquote>
 
 <h3>
-<a id="codepath-ios-guides-httpguidescodepathcomios" class="anchor" href="#codepath-ios-guides-httpguidescodepathcomios" aria-hidden="true"><span class="octicon octicon-link"></span></a>CodePath iOS Guides: <a href="http://guides.codepath.com/ios">http://guides.codepath.com/ios</a>
+<a id="codepath-ios-guides-httpguidescodepathcomios" class="anchor" href="#codepath-ios-guides-httpguidescodepathcomios" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>CodePath iOS Guides: <a href="http://guides.codepath.com/ios">http://guides.codepath.com/ios</a>
 </h3>
 
-<p><img src="http://guides.codepath.com/images/logos/codepath.svg?1448940932" alt="CodePath logo"></p>
+<p><img src="https://github.com/RoRoche/iOSSwiftStarter/blob/master/assets/logo_codepath.png" alt="CodePath logo"></p>
 
 <h3>
-<a id="ios-good-practices-httpsgithubcomfuturiceios-good-practices" class="anchor" href="#ios-good-practices-httpsgithubcomfuturiceios-good-practices" aria-hidden="true"><span class="octicon octicon-link"></span></a>iOS Good Practices: <a href="https://github.com/futurice/ios-good-practices">https://github.com/futurice/ios-good-practices</a>
+<a id="ios-good-practices-httpsgithubcomfuturiceios-good-practices" class="anchor" href="#ios-good-practices-httpsgithubcomfuturiceios-good-practices" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>iOS Good Practices: <a href="https://github.com/futurice/ios-good-practices">https://github.com/futurice/ios-good-practices</a>
 </h3>
 
 <blockquote>
 <p>Good ideas for iOS development, by Futurice developers. <a href="http://www.futurice.com">http://www.futurice.com</a></p>
 </blockquote>
 
-<p><img src="http://static.flockler.com/assets/futurice/images/futurice-logo--green.svg" alt="futurice logo"></p>
+<p><img src="https://raw.githubusercontent.com/RoRoche/iOSSwiftStarter/master/assets/logo_futurice.png" alt="futurice logo"></p>
 
 <h3>
-<a id="clean-swift-httpclean-swiftcom" class="anchor" href="#clean-swift-httpclean-swiftcom" aria-hidden="true"><span class="octicon octicon-link"></span></a>Clean Swift: <a href="http://clean-swift.com/">http://clean-swift.com/</a>
+<a id="clean-swift-httpclean-swiftcom" class="anchor" href="#clean-swift-httpclean-swiftcom" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Clean Swift: <a href="http://clean-swift.com/">http://clean-swift.com/</a>
 </h3>
 
 <h3>
-<a id="awesome-swift-education-httpsgithubcomhsavit1awesome-swift-education" class="anchor" href="#awesome-swift-education-httpsgithubcomhsavit1awesome-swift-education" aria-hidden="true"><span class="octicon octicon-link"></span></a>Awesome-Swift-Education: <a href="https://github.com/hsavit1/Awesome-Swift-Education">https://github.com/hsavit1/Awesome-Swift-Education</a>
+<a id="awesome-swift-education-httpsgithubcomhsavit1awesome-swift-education" class="anchor" href="#awesome-swift-education-httpsgithubcomhsavit1awesome-swift-education" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Awesome-Swift-Education: <a href="https://github.com/hsavit1/Awesome-Swift-Education">https://github.com/hsavit1/Awesome-Swift-Education</a>
 </h3>
 
 <blockquote>
@@ -1377,7 +1377,7 @@ Swift Programming Language.</p>
 </blockquote>
 
 <h3>
-<a id="awesome-apple-httpsgithubcomjoeljfischerawesome-apple" class="anchor" href="#awesome-apple-httpsgithubcomjoeljfischerawesome-apple" aria-hidden="true"><span class="octicon octicon-link"></span></a>Awesome-Apple: <a href="https://github.com/joeljfischer/awesome-apple">https://github.com/joeljfischer/awesome-apple</a>
+<a id="awesome-apple-httpsgithubcomjoeljfischerawesome-apple" class="anchor" href="#awesome-apple-httpsgithubcomjoeljfischerawesome-apple" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Awesome-Apple: <a href="https://github.com/joeljfischer/awesome-apple">https://github.com/joeljfischer/awesome-apple</a>
 </h3>
 
 <blockquote>
@@ -1385,7 +1385,7 @@ Swift Programming Language.</p>
 </blockquote>
 
 <h3>
-<a id="the-official-raywenderlichcom-swift-style-guide-httpsgithubcomraywenderlichswift-style-guide" class="anchor" href="#the-official-raywenderlichcom-swift-style-guide-httpsgithubcomraywenderlichswift-style-guide" aria-hidden="true"><span class="octicon octicon-link"></span></a>The Official raywenderlich.com Swift Style Guide: <a href="https://github.com/raywenderlich/swift-style-guide">https://github.com/raywenderlich/swift-style-guide</a>
+<a id="the-official-raywenderlichcom-swift-style-guide-httpsgithubcomraywenderlichswift-style-guide" class="anchor" href="#the-official-raywenderlichcom-swift-style-guide-httpsgithubcomraywenderlichswift-style-guide" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>The Official raywenderlich.com Swift Style Guide: <a href="https://github.com/raywenderlich/swift-style-guide">https://github.com/raywenderlich/swift-style-guide</a>
 </h3>
 
 <blockquote>
@@ -1393,7 +1393,7 @@ Swift Programming Language.</p>
 </blockquote>
 
 <h3>
-<a id="ios-architecture-httpsgithubcomonmyway133ios-architecture" class="anchor" href="#ios-architecture-httpsgithubcomonmyway133ios-architecture" aria-hidden="true"><span class="octicon octicon-link"></span></a>ios-architecture: <a href="https://github.com/onmyway133/ios-architecture">https://github.com/onmyway133/ios-architecture</a>
+<a id="ios-architecture-httpsgithubcomonmyway133ios-architecture" class="anchor" href="#ios-architecture-httpsgithubcomonmyway133ios-architecture" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>ios-architecture: <a href="https://github.com/onmyway133/ios-architecture">https://github.com/onmyway133/ios-architecture</a>
 </h3>
 
 <blockquote>
@@ -1401,7 +1401,7 @@ Swift Programming Language.</p>
 </blockquote>
 
 <h2>
-<a id="bibliography" class="anchor" href="#bibliography" aria-hidden="true"><span class="octicon octicon-link"></span></a>Bibliography</h2>
+<a id="bibliography" class="anchor" href="#bibliography" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Bibliography</h2>
 
 <ul>
 <li>ActiveRecord pattern:
@@ -1456,7 +1456,7 @@ Swift Programming Language.</p>
 </ul>
 
 <h2>
-<a id="bonus" class="anchor" href="#bonus" aria-hidden="true"><span class="octicon octicon-link"></span></a>Bonus</h2>
+<a id="bonus" class="anchor" href="#bonus" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Bonus</h2>
 
 <ul>
 <li>iOS Unit Testing: Dependency Injection with Structs in Swift
