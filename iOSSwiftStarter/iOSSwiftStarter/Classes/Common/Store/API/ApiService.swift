@@ -54,7 +54,7 @@ enum ApiService: URLRequestConvertible {
     
     var URLRequest: NSMutableURLRequest {
         let URL = NSURL(string: ApiService.baseURLString)!;
-        let mutableURLRequest = NSMutableURLRequest(URL: URL.URLByAppendingPathComponent(path.lastSegmentPath));
+        let mutableURLRequest = NSMutableURLRequest(URL: URL.URLByAppendingPathComponent(path.lastSegmentPath)!);
         mutableURLRequest.HTTPMethod = method.rawValue;
         let encoding = Alamofire.ParameterEncoding.URL;
         

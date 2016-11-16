@@ -42,8 +42,11 @@ class ListRepoModuleLocalDataManager: ListRepoModuleLocalDataManagerInputProtoco
         DataStoreManager.sharedInstance.dataStack.beginAsynchronous { (transaction) -> Void in
             let results: Array<Repo> = transaction.fetchAll(
                 From(Repo),
-                Where("%K == %@", "owner", user)
-                )!;
+                Where("%K == %@", "owner", user),
+                Tweak { (fetchRequest) -> Void in
+                    fetchRequest.includesPendingChanges = false
+                }
+                )!
             
             completionHandler(ListRepoModuleLocalDataManagerGetReposResult.Success(repos: results));
             

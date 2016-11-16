@@ -33,7 +33,7 @@ class ListRepoModuleWireFrame: ListRepoModuleWireFrameProtocol
         wireFrame.detailWireframe = detailRepoModuleWireFrame;
         
         // Present
-        if(fromView.isKindOfClass(UINavigationController)) {
+        if (fromView.isKindOfClass(UINavigationController)) {
             (fromView as! UINavigationController).setViewControllers([view as! UIViewController], animated: true);
         }
     }

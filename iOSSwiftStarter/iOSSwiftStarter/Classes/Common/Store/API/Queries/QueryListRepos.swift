@@ -37,6 +37,8 @@ class QueryListRepos: Task<Void, Array<RepoDTO>, NSError> {
                     }
             }
             
+//            debugPrint(request);
+            
             // we plug the cancel method of the Task to the cancel method of the request
             configure.cancel = {
                 request.cancel();

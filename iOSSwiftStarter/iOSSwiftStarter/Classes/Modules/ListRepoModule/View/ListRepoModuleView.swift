@@ -112,10 +112,8 @@ class ListRepoModuleView: UIViewController, StatefulViewController, ListRepoModu
     }
     
     func showRepos(repos: Array<Repo>, pulledToRefresh: Bool) {
-        Async.main {
-            self.data = repos;
-            self.resetRepoCellModels(pulledToRefresh);
-        }
+        self.data = repos;
+        self.resetRepoCellModels(pulledToRefresh);
     }
     
     func showError(error: NSError) {
@@ -139,40 +137,78 @@ class ListRepoModuleView: UIViewController, StatefulViewController, ListRepoModu
     
     // MARK: - Table view specific job
     
+    func presentDetailRepoModule(index: Int) {
+        let repo = data[index]
+        print(repo.name)
+        print(data.count)
+        self.presenter?.presentDetailRepoModuleModule(repo);
+    }
+    
     func resetRepoCellModels(pulledToRefresh: Bool) {
         var cellModels: Array<RepoCellModel> = Array<RepoCellModel>();
         
+//        for repo: Repo in self.data {
+//            let cellModel: RepoCellModel = RepoCellModel(avatarUrl: repo.avatarUrl!, name: repo.name!) { _ in
+//                debugPrint("Did select cell with title = \(avatarUrl)")
+//                debugPrint(name)
+//                self.presenter?.presentDetailRepoModuleModule(repo);
+//                self.tableView.deselectRowAtIndexPath(self.tableView.indexPathForSelectedRow!, animated: true);
+//            };
+//
+//            cellModels.append(cellModel);
+//        }
+        
+//        let topCellmodels = (0..<self.data.count).map { [weak self] i -> RepoCellModel in
+//            let name = self!.data[i].name
+//            let avatarUrl = self!.data[i].avatarUrl
+//            
+//            return RepoCellModel(avatarUrl: avatarUrl!, name: name!) { _ in
+//                let repo = self!.data[i]
+//                print("Did select new cell : \(i)")
+//////                self?.pushChildViewController()
+//                print(repo.name)
+//                self!.presenter?.presentDetailRepoModuleModule(repo);
+////                self!.presentDetailRepoModule(i)
+//                self!.tableView.deselectRowAtIndexPath(self!.tableView.indexPathForSelectedRow!, animated: true);
+//            }
+//        }
+//        cellModels = topCellmodels
+        
+        
         for repo: Repo in self.data {
             let cellModel: RepoCellModel = RepoCellModel(avatarUrl: repo.avatarUrl!, name: repo.name!) { _ in
+                debugPrint(repo.name)
                 self.presenter?.presentDetailRepoModuleModule(repo);
-                
                 self.tableView.deselectRowAtIndexPath(self.tableView.indexPathForSelectedRow!, animated: true);
             };
             
             cellModels.append(cellModel);
         }
         
-        if(self.hakuba.sectionsCount > 0) {
-            self.hakuba[0].reset(cellModels)
-                .bump();
-        } else {
-            let section = Section();
-            hakuba
-                .insert(section, atIndex: 1)
-                .bump();
-            self.hakuba[0].append(cellModels)
-                .bump();
+        Async.main {
+            if(self.hakuba.sectionsCount > 0) {
+                self.hakuba[0].reset(cellModels)
+                    .bump();
+            } else {
+                let section = Section();
+                self.hakuba
+                    .insert(section, atIndex: 1)
+                    .bump();
+                self.hakuba[0].append(cellModels)
+                    .bump();
+            }
         }
         
         if(self.data.count > 0) {
-            stateMachine.transitionToState(.View(ViewState.Content.value), animated: true);
+            self.stateMachine.transitionToState(.View(ViewState.Content.value), animated: true);
         } else {
-            stateMachine.transitionToState(.View(ViewState.Empty.value), animated: true);
+            self.stateMachine.transitionToState(.View(ViewState.Empty.value), animated: true);
         }
         
         if(pulledToRefresh) {
             self.refreshControl.endRefreshing();
         }
+        
     }
     
     // MARK: - StatefulViewController
