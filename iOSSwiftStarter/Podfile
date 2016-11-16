@@ -9,14 +9,14 @@ end
 
 target 'iOSSwiftStarter' do
     abstract_pods
-    pod 'Alamofire', '~> 3.0'
-    pod 'AlamofireObjectMapper', '~> 2.1'
+    pod 'Alamofire', '~> 3.5.0'
+    pod 'AlamofireObjectMapper', '~> 3.0.2'
     pod 'ReactKit'
-    pod 'Kugel'
+    pod 'Kugel', '~> 0.1.0'
     pod 'CoreStore'
     pod 'Hakuba'
-    pod 'Kingfisher', '~> 1.8'
-    pod 'AsyncSwift'
+    pod 'Kingfisher', '~> 2.6.1'
+    pod 'AsyncSwift', '~> 1.6.4'
     pod 'StatefulViewController', '~> 1.0'
 end
 
@@ -31,4 +31,13 @@ target 'iOSSwiftStarterTests' do
 end
 
 target 'iOSSwiftStarterUITests' do
+end
+
+# Use Legacy Swift Language Version
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |configuration|
+      configuration.build_settings['SWIFT_VERSION'] = "2.3"
+    end
+  end
 end
